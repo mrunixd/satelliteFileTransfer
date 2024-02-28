@@ -6,7 +6,7 @@ import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
-public class Satellite implements Entity {
+public abstract class Satellite implements Entity {
     private String satelliteId;
     private String type;
     private double height;
@@ -27,6 +27,15 @@ public class Satellite implements Entity {
     public Angle getPosition() {
         return this.position;
     }
+
+    public void setPosition(Angle position) {
+        this.position = position;
+    }
+
+    public double getHeight() {
+        return this.height;
+    }
+    public abstract void moveSatellite();
 
     @Override
     public EntityInfoResponse getInfo() {
