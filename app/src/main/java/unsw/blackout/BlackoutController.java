@@ -13,38 +13,87 @@ import unsw.utils.Angle;
  * signatures
  */
 public class BlackoutController {
+    private ArrayList<Device> deviceList = new ArrayList<Device>();
+    private ArrayList<Satellite> satelliteList = new ArrayList<Satellite>();
+
     public void createDevice(String deviceId, String type, Angle position) {
-        // TODO: Task 1a)
+        Device device = new Device(deviceId, type, position);
+        deviceList.add(device);
     }
 
     public void removeDevice(String deviceId) {
-        // TODO: Task 1b)
+        Device device = findByDeviceId(deviceId);
+        deviceList.remove(device);
     }
 
     public void createSatellite(String satelliteId, String type, double height, Angle position) {
-        // TODO: Task 1c)
+        Satellite satellite = new Satellite(satelliteId, type, height, position);
+        satelliteList.add(satellite);
     }
 
     public void removeSatellite(String satelliteId) {
-        // TODO: Task 1d)
+        Satellite satellite = findBySatelliteId(satelliteId);
+        satelliteList.remove(satellite);
     }
 
     public List<String> listDeviceIds() {
-        // TODO: Task 1e)
-        return new ArrayList<>();
+        List<String> arr = new ArrayList<String>();
+
+        for (Device device : deviceList) {
+            arr.add(device.getDeviceId());
+        }
+        return arr;
     }
 
     public List<String> listSatelliteIds() {
-        // TODO: Task 1f)
-        return new ArrayList<>();
+        List<String> arr = new ArrayList<String>();
+        for (Satellite satellite : satelliteList) {
+            arr.add(satellite.getSatelliteId());
+        }
+        return arr;
     }
 
     public void addFileToDevice(String deviceId, String filename, String content) {
-        // TODO: Task 1g)
+        Device target = findByDeviceId(deviceId);
+        target.addFile(filename, content);
     }
 
     public EntityInfoResponse getInfo(String id) {
-        // TODO: Task 1h)
+        Entity entity = findEntityById(id);
+
+        if (entity != null) {
+            return entity.getInfo();
+        }
+        return null;
+    }
+
+    public Entity findEntityById(String id) {
+        Device device = findByDeviceId(id);
+
+        if (device != null) {
+            return device;
+        } else {
+            return findBySatelliteId(id);
+        }
+    }
+
+    public Device findByDeviceId(String deviceId) {
+        for (Device device : deviceList) {
+            if (device.getDeviceId().equals(deviceId)) {
+                return device;
+            }
+        }
+
+        return null;
+    }
+
+    public Satellite findBySatelliteId(String satelliteId) {
+        for (Satellite satellite : satelliteList) {
+            if (satellite.getSatelliteId().equals(satelliteId)) {
+                return satellite;
+            }
+        }
+
         return null;
     }
 
