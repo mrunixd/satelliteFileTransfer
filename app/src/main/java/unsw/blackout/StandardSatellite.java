@@ -13,9 +13,9 @@ public class StandardSatellite extends Satellite {
 
     @Override
     public void moveSatellite() {
-        double angularVelocity = -1 * (linearSpeed / super.getHeight());
-        Angle angle = Angle.fromRadians(angularVelocity);
+        double angularVelocity = linearSpeed / super.getHeight();
+        Angle newAngle = super.getPosition().subtract(Angle.fromRadians(angularVelocity));
 
-        super.setPosition(super.getPosition().add(angle));
+        super.setPosition(newAngle);
     }
 }
