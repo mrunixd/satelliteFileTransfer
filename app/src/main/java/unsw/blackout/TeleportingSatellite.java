@@ -6,7 +6,7 @@ public class TeleportingSatellite extends Satellite {
     private int linearSpeed = 1000;
     private int range = 200000;
     private Angle initial;
-    private boolean clockwise = true;
+    private boolean clockwise = false;
 
     public TeleportingSatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
@@ -33,11 +33,11 @@ public class TeleportingSatellite extends Satellite {
         }
         newAngle = Angle.fromDegrees(newAngleDeg);
 
-        boolean crossesClockwise = (this.clockwise && newAngle.toDegrees() < teleportDegVal
-                && super.getPosition().toDegrees() >= teleportDegVal);
-
-        boolean crossesAntiClockwise = (!this.clockwise && newAngle.toDegrees() > teleportDegVal
+        boolean crossesClockwise = (!this.clockwise && newAngle.toDegrees() > teleportDegVal
                 && super.getPosition().toDegrees() <= teleportDegVal);
+
+        boolean crossesAntiClockwise = (this.clockwise && newAngle.toDegrees() < teleportDegVal
+                && super.getPosition().toDegrees() >= teleportDegVal);
 
         if (crossesClockwise || crossesAntiClockwise) {
             // Teleport back to the initial position
