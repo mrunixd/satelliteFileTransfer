@@ -1,6 +1,7 @@
 package blackout;
 
 import static blackout.TestHelpers.assertListAreEqualIgnoringOrder;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
 import java.util.Arrays;
@@ -41,5 +42,28 @@ public class MyTests {
         controller.removeSatellite("Satellite1");
 
         assertListAreEqualIgnoringOrder(Arrays.asList("Satellite2", "Satellite3"), controller.listSatelliteIds());
+    }
+
+    @Test
+    public void relayMovement() {
+        BlackoutController controller = new BlackoutController();
+        controller.createSatellite("Satellite1", "RelaySatellite", 10000 + RADIUS_OF_JUPITER, Angle.fromDegrees(345));
+
+        Angle original = controller.getInfo("Satellite1").getPosition();
+        controller.simulate();
+
+        Angle firstMovement = controller.getInfo("Satellite1").getPosition();
+        assertTrue(firstMovement.compareTo(original) == 1);
+
+        controller.simulate();
+        assertTrue(controller.getInfo("Satellite1").getPosition().compareTo(original) == 1);
+
+        controller.simulate(190);
+        assertTrue(controller.getInfo("Satellite1").getPosition().toDegrees() > 140
+                && controller.getInfo("Satellite1").getPosition().toDegrees() < 190);
+
+        controller.simulate(190);
+        assertTrue(controller.getInfo("Satellite1").getPosition().toDegrees() > 140
+                && controller.getInfo("Satellite1").getPosition().toDegrees() < 190);
     }
 }
