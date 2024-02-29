@@ -9,7 +9,6 @@ public class RelaySatellite extends Satellite {
 
     public RelaySatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
-        //TODO Auto-generated constructor stub
     }
 
     @Override
@@ -18,31 +17,26 @@ public class RelaySatellite extends Satellite {
         Angle original = super.getPosition();
         Angle newAngle = super.getPosition().subtract(Angle.fromRadians(angularVelocity));
 
-        if (this.clockwise) {
-            newAngle = super.getPosition().subtract(Angle.fromRadians(angularVelocity));
-        } else {
-            newAngle = super.getPosition().add(Angle.fromRadians(angularVelocity));
-        }
-
-        newAngle = placeDegreesInRange(newAngle);
-
         if (original.toDegrees() > 190 || original.toDegrees() < 140) {
-            // newAngle = direction needed to move in to either 140 or 190
-            if (original.toDegrees() < 345 && original.toDegrees() > 190) {
-                this.clockwise = true;
-            } else {
+            if (original.toDegrees() >= 345 || original.toDegrees() < 140) {
                 this.clockwise = false;
+            } else {
+                this.clockwise = true;
             }
+            newAngle = calculateNewAngle(angularVelocity, clockwise);
             super.setPosition(newAngle);
             return;
         }
 
+        newAngle = calculateNewAngle(angularVelocity, clockwise);
+
         boolean crossesClockwise = clockwise && original.toDegrees() > 140 && newAngle.toDegrees() < 140;
-        boolean crossesAntiClockwise = !clockwise && original.toDegrees() < 190 && newAngle.toDegrees() > 140;
+        boolean crossesAntiClockwise = !clockwise && original.toDegrees() < 190 && newAngle.toDegrees() > 190;
 
         if (crossesClockwise || crossesAntiClockwise) {
             this.clockwise = !this.clockwise;
         }
+
         super.setPosition(newAngle);
     }
 }
