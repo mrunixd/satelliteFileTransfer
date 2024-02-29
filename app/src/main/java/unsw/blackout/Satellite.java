@@ -35,6 +35,19 @@ public abstract class Satellite implements Entity {
     public double getHeight() {
         return this.height;
     }
+
+    public Angle placeDegreesInRange(Angle newAngle) {
+        double newAngleDeg = newAngle.toDegrees();
+        if (newAngleDeg < 0) {
+            newAngleDeg += 360;
+        } else if (newAngleDeg >= 360) {
+            newAngleDeg -= 360;
+        }
+        newAngle = Angle.fromDegrees(newAngleDeg);
+
+        return newAngle;
+    }
+
     public abstract void moveSatellite();
 
     @Override
