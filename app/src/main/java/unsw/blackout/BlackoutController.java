@@ -27,7 +27,19 @@ public class BlackoutController {
     }
 
     public void createSatellite(String satelliteId, String type, double height, Angle position) {
-        Satellite satellite = new Satellite(satelliteId, type, height, position);
+        Satellite satellite;
+
+        switch (type) {
+        case "StandardSatellite":
+            satellite = new StandardSatellite(satelliteId, type, height, position);
+            break;
+        case "TeleportingSatellite":
+            satellite = new TeleportingSatellite(satelliteId, type, height, position);
+            break;
+        default:
+            satellite = new RelaySatellite(satelliteId, type, height, position);
+        }
+
         satelliteList.add(satellite);
     }
 
@@ -99,6 +111,12 @@ public class BlackoutController {
 
     public void simulate() {
         // TODO: Task 2a)
+        // move satellite
+        for (Satellite satellite : satelliteList) {
+            satellite.moveSatellite();
+        }
+        // transfer byte of file
+
     }
 
     /**
