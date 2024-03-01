@@ -48,6 +48,18 @@ public abstract class Satellite implements Entity {
         return newAngle;
     }
 
+    public Angle calculateNewAngle(double angularVelocity, boolean clockwise) {
+        Angle newAngle;
+        if (clockwise) {
+            newAngle = this.position.subtract(Angle.fromRadians(angularVelocity));
+        } else {
+            newAngle = this.position.add(Angle.fromRadians(angularVelocity));
+        }
+
+        newAngle = placeDegreesInRange(newAngle);
+        return newAngle;
+    }
+
     public abstract void moveSatellite();
 
     @Override

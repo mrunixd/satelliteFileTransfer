@@ -19,13 +19,7 @@ public class TeleportingSatellite extends Satellite {
         double teleportDegVal = (initial.toDegrees() + 180) % 360;
         Angle newAngle;
 
-        if (this.clockwise) {
-            newAngle = super.getPosition().subtract(Angle.fromRadians(angularVelocity));
-        } else {
-            newAngle = super.getPosition().add(Angle.fromRadians(angularVelocity));
-        }
-
-        newAngle = placeDegreesInRange(newAngle);
+        newAngle = calculateNewAngle(angularVelocity, clockwise);
 
         boolean crossesClockwise = (!this.clockwise && newAngle.toDegrees() > teleportDegVal
                 && super.getPosition().toDegrees() <= teleportDegVal);
