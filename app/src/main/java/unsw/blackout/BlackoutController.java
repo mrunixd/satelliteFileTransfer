@@ -17,7 +17,19 @@ public class BlackoutController {
     private ArrayList<Satellite> satelliteList = new ArrayList<Satellite>();
 
     public void createDevice(String deviceId, String type, Angle position) {
-        Device device = new Device(deviceId, type, position);
+        Device device;
+
+        switch (type) {
+        case "HandheldDevice":
+            device = new HandheldDevice(deviceId, type, position, deviceList, satelliteList);
+            break;
+        case "LaptopDevice":
+            device = new LaptopDevice(deviceId, type, position, deviceList, satelliteList);
+            break;
+        default:
+            device = new DesktopDevice(deviceId, type, position, deviceList, satelliteList);
+        }
+
         deviceList.add(device);
     }
 
@@ -31,13 +43,13 @@ public class BlackoutController {
 
         switch (type) {
         case "StandardSatellite":
-            satellite = new StandardSatellite(satelliteId, type, height, position);
+            satellite = new StandardSatellite(satelliteId, type, height, position, satelliteList, deviceList);
             break;
         case "TeleportingSatellite":
-            satellite = new TeleportingSatellite(satelliteId, type, height, position);
+            satellite = new TeleportingSatellite(satelliteId, type, height, position, satelliteList, deviceList);
             break;
         default:
-            satellite = new RelaySatellite(satelliteId, type, height, position);
+            satellite = new RelaySatellite(satelliteId, type, height, position, satelliteList, deviceList);
         }
 
         satelliteList.add(satellite);
@@ -131,7 +143,9 @@ public class BlackoutController {
 
     public List<String> communicableEntitiesInRange(String id) {
         // TODO: Task 2 b)
-        return new ArrayList<>();
+        Entity entity = findEntityById(id);
+
+        return entity.inRange();
     }
 
     public void sendFile(String fileName, String fromId, String toId) throws FileTransferException {
