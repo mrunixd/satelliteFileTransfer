@@ -1,7 +1,14 @@
 package unsw.blackout;
 
+import static unsw.utils.MathsHelper.getDistance;
+import static unsw.utils.MathsHelper.isVisible;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 import unsw.response.models.EntityInfoResponse;
 import unsw.utils.Angle;
@@ -21,13 +28,13 @@ public class BlackoutController {
 
         switch (type) {
         case "HandheldDevice":
-            device = new HandheldDevice(deviceId, type, position, deviceList, satelliteList);
+            device = new HandheldDevice(deviceId, type, position);
             break;
         case "LaptopDevice":
-            device = new LaptopDevice(deviceId, type, position, deviceList, satelliteList);
+            device = new LaptopDevice(deviceId, type, position);
             break;
         default:
-            device = new DesktopDevice(deviceId, type, position, deviceList, satelliteList);
+            device = new DesktopDevice(deviceId, type, position);
         }
 
         deviceList.add(device);
@@ -43,13 +50,13 @@ public class BlackoutController {
 
         switch (type) {
         case "StandardSatellite":
-            satellite = new StandardSatellite(satelliteId, type, height, position, satelliteList, deviceList);
+            satellite = new StandardSatellite(satelliteId, type, height, position);
             break;
         case "TeleportingSatellite":
-            satellite = new TeleportingSatellite(satelliteId, type, height, position, satelliteList, deviceList);
+            satellite = new TeleportingSatellite(satelliteId, type, height, position);
             break;
         default:
-            satellite = new RelaySatellite(satelliteId, type, height, position, satelliteList, deviceList);
+            satellite = new RelaySatellite(satelliteId, type, height, position);
         }
 
         satelliteList.add(satellite);
@@ -142,10 +149,38 @@ public class BlackoutController {
     }
 
     public List<String> communicableEntitiesInRange(String id) {
-        // TODO: Task 2 b)
-        Entity entity = findEntityById(id);
+        Queue<Entity> q = new ArrayDeque<>();
+        Set<Entity> visited = new HashSet<>();
+        List<String> entitiesinRange = new ArrayList<>();
 
-        return entity.inRange();
+        Entity entity = findEntityById(id);
+        q.add(entity);
+
+        List<String> entities = new ArrayList<>();
+        entities.addAll(listSatelliteIds());
+        entities.addAll(listDeviceIds());
+
+        while (!q.isEmpty()) {
+            entity = q.remove();
+
+            for (String entityId : entities) {
+                Entity e = findEntityById(entityId);
+
+                double distance = getDistance(entity.getInfo().getHeight(), entity.getInfo().getPosition(),
+                        e.getInfo().getHeight(), e.getInfo().getPosition());
+                boolean isVisible = isVisible(entity.getInfo().getHeight(), entity.getInfo().getPosition(),
+                        e.getInfo().getHeight(), e.getInfo().getPosition());
+
+                if (!visited.contains(e) && distance < e.getRange() && distance > 0 && isVisible) {
+                    if (e instanceof RelaySatellite) {
+                        q.add(e);
+                    }
+                    entitiesinRange.add(e.getInfo().getDeviceId());
+                    visited.add(e);
+                }
+            }
+        }
+        return entitiesinRange;
     }
 
     public void sendFile(String fileName, String fromId, String toId) throws FileTransferException {

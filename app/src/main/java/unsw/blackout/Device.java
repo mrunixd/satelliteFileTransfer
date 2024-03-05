@@ -3,7 +3,6 @@ package unsw.blackout;
 import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
@@ -13,17 +12,12 @@ public abstract class Device implements Entity {
     private String deviceId;
     private String type;
     private Angle position;
-    private List<Device> deviceList;
-    private List<Satellite> satelliteList;
     private Map<String, FileInfoResponse> fileList = new HashMap<>();
 
-    public Device(String deviceId, String type, Angle position, List<Device> deviceList,
-            List<Satellite> satelliteList) {
+    public Device(String deviceId, String type, Angle position) {
         this.deviceId = deviceId;
         this.type = type;
         this.position = position;
-        this.deviceList = deviceList;
-        this.satelliteList = satelliteList;
     }
 
     public String getDeviceId() {
@@ -36,14 +30,6 @@ public abstract class Device implements Entity {
 
     public Angle getPosition() {
         return this.position;
-    }
-
-    public List<Device> getDeviceList() {
-        return this.deviceList;
-    }
-
-    public List<Satellite> getSatelliteList() {
-        return this.satelliteList;
     }
 
     @Override
