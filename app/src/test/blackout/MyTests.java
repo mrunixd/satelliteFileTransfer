@@ -66,4 +66,20 @@ public class MyTests {
         assertTrue(controller.getInfo("Satellite1").getPosition().toDegrees() > 140
                 && controller.getInfo("Satellite1").getPosition().toDegrees() < 190);
     }
+
+    @Test
+    public void desktopAndStandardSatellite() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("Satellite1", "StandardSatellite", 1000 + RADIUS_OF_JUPITER, Angle.fromDegrees(340));
+        controller.createSatellite("Relay", "RelaySatellite", 1000 + RADIUS_OF_JUPITER, Angle.fromDegrees(7));
+
+        controller.createDevice("DeviceB", "DesktopDevice", Angle.fromDegrees(25));
+
+        assertListAreEqualIgnoringOrder(Arrays.asList("Relay"), controller.communicableEntitiesInRange("Satellite1"));
+        assertListAreEqualIgnoringOrder(Arrays.asList("DeviceC", "Satellite1"),
+                controller.communicableEntitiesInRange("Relay"));
+        assertListAreEqualIgnoringOrder(Arrays.asList(), controller.communicableEntitiesInRange("DeviceB"));
+
+    }
 }
