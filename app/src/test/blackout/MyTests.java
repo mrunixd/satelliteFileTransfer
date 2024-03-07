@@ -71,15 +71,15 @@ public class MyTests {
     public void desktopAndStandardSatellite() {
         BlackoutController controller = new BlackoutController();
 
-        controller.createSatellite("Satellite1", "StandardSatellite", 1000 + RADIUS_OF_JUPITER, Angle.fromDegrees(340));
-        controller.createSatellite("Relay", "RelaySatellite", 1000 + RADIUS_OF_JUPITER, Angle.fromDegrees(7));
+        controller.createSatellite("Satellite1", "StandardSatellite", 20000 + RADIUS_OF_JUPITER, Angle.fromDegrees(23));
+        controller.createSatellite("Relay", "RelaySatellite", 20000 + RADIUS_OF_JUPITER, Angle.fromDegrees(0));
 
-        controller.createDevice("DeviceB", "DesktopDevice", Angle.fromDegrees(25));
-
+        controller.createDevice("DeviceB", "DesktopDevice", Angle.fromDegrees(0));
+        System.out.println(controller.communicableEntitiesInRange("Satellite1"));
         assertListAreEqualIgnoringOrder(Arrays.asList("Relay"), controller.communicableEntitiesInRange("Satellite1"));
-        assertListAreEqualIgnoringOrder(Arrays.asList("DeviceC", "Satellite1"),
+        assertListAreEqualIgnoringOrder(Arrays.asList("DeviceB", "Satellite1"),
                 controller.communicableEntitiesInRange("Relay"));
-        assertListAreEqualIgnoringOrder(Arrays.asList(), controller.communicableEntitiesInRange("DeviceB"));
+        assertListAreEqualIgnoringOrder(Arrays.asList("Relay"), controller.communicableEntitiesInRange("DeviceB"));
 
     }
 }

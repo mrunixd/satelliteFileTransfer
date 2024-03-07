@@ -163,13 +163,14 @@ public class BlackoutController {
 
         while (!q.isEmpty()) {
             entity = q.remove();
+            System.out.println("Entities to search: " + entities);
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
-                System.out.println(e.getInfo().getDeviceId());
+                System.out.println("Searching: " + e.getInfo().getDeviceId());
                 if ((e instanceof StandardSatellite && entity instanceof DesktopDevice)
                         || (e instanceof DesktopDevice && entity instanceof StandardSatellite)) {
                     visited.add(e);
-                    break;
+                    continue;
                 }
                 double distance = getDistance(entity.getInfo().getHeight(), entity.getInfo().getPosition(),
                         e.getInfo().getHeight(), e.getInfo().getPosition());
@@ -179,14 +180,14 @@ public class BlackoutController {
                 if (!visited.contains(e) && distance < e.getRange() && distance > 0 && isVisible) {
                     if (e instanceof RelaySatellite) {
                         q.add(e);
-                        System.out.println("counter");
                     }
                     entitiesinRange.add(e.getInfo().getDeviceId());
                     visited.add(e);
                 }
             }
         }
-        System.out.println(entitiesinRange);
+        System.out.println("Entities in Range: " + entitiesinRange);
+        System.out.println();
         return entitiesinRange;
     }
 
