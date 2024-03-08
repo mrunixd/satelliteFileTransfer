@@ -2,7 +2,9 @@ package unsw.blackout;
 
 import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
@@ -12,6 +14,7 @@ public abstract class Device implements Entity {
     private String deviceId;
     private String type;
     private Angle position;
+    private List<File> files = new ArrayList<>();
     private Map<String, FileInfoResponse> fileList = new HashMap<>();
 
     public Device(String deviceId, String type, Angle position) {
@@ -25,11 +28,18 @@ public abstract class Device implements Entity {
     }
 
     public void addFile(String filename, String content) {
-        fileList.put(filename, new FileInfoResponse(filename, content, content.length(), true));
+        File file = new File(filename, content);
+        files.add(file);
     }
 
     public Map<String, FileInfoResponse> getFiles() {
-        return this.fileList;
+        Map<String, FileInfoResponse> fileList = new HashMap<>();
+
+        for (File file : files) {
+            fileList.put(file.getName(),
+                    new FileInfoResponse(file.getName(), file.getContent(), file.getContent().length(), true));
+        }
+        return fileList;
     }
 
     public Angle getPosition() {
@@ -38,9 +48,7 @@ public abstract class Device implements Entity {
 
     @Override
     public EntityInfoResponse getInfo() {
-        EntityInfoResponse info = new EntityInfoResponse(this.deviceId, this.position, RADIUS_OF_JUPITER, this.type,
-                fileList);
-        return info;
+        return new EntityInfoResponse(this.deviceId, this.position, RADIUS_OF_JUPITER, this.type, getFiles());
     }
 
 }
