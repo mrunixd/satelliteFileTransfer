@@ -36,6 +36,10 @@ public abstract class Satellite implements Entity {
         return this.height;
     }
 
+    public Map<String, FileInfoResponse> getFiles() {
+        return this.fileList;
+    }
+
     public Angle placeDegreesInRange(Angle newAngle) {
         double newAngleDeg = newAngle.toDegrees();
         if (newAngleDeg < 0) {

@@ -28,6 +28,10 @@ public abstract class Device implements Entity {
         fileList.put(filename, new FileInfoResponse(filename, content, content.length(), true));
     }
 
+    public Map<String, FileInfoResponse> getFiles() {
+        return this.fileList;
+    }
+
     public Angle getPosition() {
         return this.position;
     }

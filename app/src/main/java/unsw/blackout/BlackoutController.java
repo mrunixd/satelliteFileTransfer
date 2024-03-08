@@ -7,10 +7,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import unsw.blackout.FileTransferException.VirtualFileAlreadyExistsException;
+import unsw.blackout.FileTransferException.VirtualFileNotFoundException;
 import unsw.response.models.EntityInfoResponse;
+import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
 /**
@@ -161,12 +165,13 @@ public class BlackoutController {
         entities.addAll(listDeviceIds());
         entities.remove(id);
 
+        // System.out.println("Entity: " + id);
         while (!q.isEmpty()) {
             entity = q.remove();
             System.out.println("Entities to search: " + entities);
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
-                System.out.println("Searching: " + e.getInfo().getDeviceId());
+                // System.out.println("Searching: " + e.getInfo().getDeviceId());
                 if ((e instanceof StandardSatellite && entity instanceof DesktopDevice)
                         || (e instanceof DesktopDevice && entity instanceof StandardSatellite)) {
                     visited.add(e);
@@ -186,13 +191,34 @@ public class BlackoutController {
                 }
             }
         }
-        System.out.println("Entities in Range: " + entitiesinRange);
-        System.out.println();
+        // System.out.println("Entities in Range: " + entitiesinRange);
+        // System.out.println();
         return entitiesinRange;
     }
 
     public void sendFile(String fileName, String fromId, String toId) throws FileTransferException {
-        // TODO: Task 2 c)
+        Entity sender = findEntityById(fromId);
+        Entity recipient = findEntityById(toId);
+
+        Map<String, FileInfoResponse> senderFiles = sender.getInfo().getFiles();
+        Map<String, FileInfoResponse> recipientFiles = recipient.getInfo().getFiles();
+
+        FileInfoResponse file = checkFile(senderFiles, fileName);
+
+        if (file == null || !file.isFileComplete()) {
+            throw new VirtualFileNotFoundException(fileName);
+        } else if (checkFile(recipientFiles, fileName) != null) {
+            throw new VirtualFileAlreadyExistsException(fileName);
+        }
+    }
+
+    private FileInfoResponse checkFile(Map<String, FileInfoResponse> fileList, String fileName) {
+        for (FileInfoResponse fileInfo : fileList.values()) {
+            if (fileInfo.getFilename().equals(fileName)) {
+                return fileInfo;
+            }
+        }
+        return null;
     }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {
