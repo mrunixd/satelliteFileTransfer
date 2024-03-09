@@ -8,7 +8,6 @@ public class StandardSatellite extends Satellite {
 
     public StandardSatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
-        //TODO Auto-generated constructor stub
     }
 
     @Override

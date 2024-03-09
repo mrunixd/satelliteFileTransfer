@@ -6,5 +6,6 @@
   "java.format.comments.enabled": false,
   "java.import.gradle.version": "8.5",
   "editor.formatOnSave": true,
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.compile.nullAnalysis.mode": "automatic"
 }

@@ -102,17 +102,11 @@ public class BlackoutController {
         return null;
     }
 
-    public Entity findEntityById(String id) {
-        Device device = findByDeviceId(id);
-
-        if (device != null) {
-            return device;
-        } else {
-            return findBySatelliteId(id);
-        }
+    private Entity findEntityById(String id) {
+        return findByDeviceId(id) != null ? findByDeviceId(id) : findBySatelliteId(id);
     }
 
-    public Device findByDeviceId(String deviceId) {
+    private Device findByDeviceId(String deviceId) {
         for (Device device : deviceList) {
             if (device.getDeviceId().equals(deviceId)) {
                 return device;
@@ -122,7 +116,7 @@ public class BlackoutController {
         return null;
     }
 
-    public Satellite findBySatelliteId(String satelliteId) {
+    private Satellite findBySatelliteId(String satelliteId) {
         for (Satellite satellite : satelliteList) {
             if (satellite.getSatelliteId().equals(satelliteId)) {
                 return satellite;
@@ -133,8 +127,6 @@ public class BlackoutController {
     }
 
     public void simulate() {
-        // TODO: Task 2a)
-        // move satellite
         for (Satellite satellite : satelliteList) {
             satellite.moveSatellite();
         }
@@ -204,10 +196,6 @@ public class BlackoutController {
         Map<String, FileInfoResponse> recipientFiles = recipient.getInfo().getFiles();
 
         FileInfoResponse file = checkFile(senderFiles, fileName);
-
-        if (sender instanceof Device) {
-            Device senderDevice 
-        }
 
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);

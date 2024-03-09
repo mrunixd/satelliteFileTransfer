@@ -1,6 +1,8 @@
 package unsw.blackout;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
@@ -11,7 +13,7 @@ public abstract class Satellite implements Entity {
     private String type;
     private double height;
     private Angle position;
-    private Map<String, FileInfoResponse> fileList = new HashMap<>();
+    private List<File> files = new ArrayList<>();
 
     public Satellite(String satelliteId, String type, double height, Angle position) {
         this.satelliteId = satelliteId;
@@ -37,19 +39,13 @@ public abstract class Satellite implements Entity {
     }
 
     public Map<String, FileInfoResponse> getFiles() {
-        return this.fileList;
-    }
+        Map<String, FileInfoResponse> fileList = new HashMap<>();
 
-    public Angle placeDegreesInRange(Angle newAngle) {
-        double newAngleDeg = newAngle.toDegrees();
-        if (newAngleDeg < 0) {
-            newAngleDeg += 360;
-        } else if (newAngleDeg >= 360) {
-            newAngleDeg -= 360;
+        for (File file : files) {
+            fileList.put(file.getName(),
+                    new FileInfoResponse(file.getName(), file.getContent(), file.getContent().length(), true));
         }
-        newAngle = Angle.fromDegrees(newAngleDeg);
-
-        return newAngle;
+        return fileList;
     }
 
     public Angle calculateNewAngle(double angularVelocity, boolean clockwise) {
@@ -64,10 +60,22 @@ public abstract class Satellite implements Entity {
         return newAngle;
     }
 
+    public Angle placeDegreesInRange(Angle newAngle) {
+        double newAngleDeg = newAngle.toDegrees();
+        if (newAngleDeg < 0) {
+            newAngleDeg += 360;
+        } else if (newAngleDeg >= 360) {
+            newAngleDeg -= 360;
+        }
+        newAngle = Angle.fromDegrees(newAngleDeg);
+
+        return newAngle;
+    }
+
     @Override
     public EntityInfoResponse getInfo() {
         EntityInfoResponse info = new EntityInfoResponse(this.satelliteId, this.position, this.height, this.type,
-                fileList);
+                getFiles());
         return info;
     }
 
