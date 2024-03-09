@@ -15,7 +15,6 @@ public abstract class Device implements Entity {
     private String type;
     private Angle position;
     private List<File> files = new ArrayList<>();
-    private Map<String, FileInfoResponse> fileList = new HashMap<>();
 
     public Device(String deviceId, String type, Angle position) {
         this.deviceId = deviceId;

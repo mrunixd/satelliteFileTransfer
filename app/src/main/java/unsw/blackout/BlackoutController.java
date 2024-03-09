@@ -205,11 +205,18 @@ public class BlackoutController {
 
         FileInfoResponse file = checkFile(senderFiles, fileName);
 
+        if (sender instanceof Device) {
+            Device senderDevice 
+        }
+
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);
-        } else if (checkFile(recipientFiles, fileName) != null) {
+        }
+
+        if (checkFile(recipientFiles, fileName) != null) {
             throw new VirtualFileAlreadyExistsException(fileName);
         }
+
     }
 
     private FileInfoResponse checkFile(Map<String, FileInfoResponse> fileList, String fileName) {
