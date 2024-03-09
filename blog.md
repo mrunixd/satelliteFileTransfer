@@ -46,3 +46,5 @@
   ideal and may violate law of demeter
 - I need to figure out how I can manage file transfer, whether I keep states of
   the data or something else
+- possibly make a new Entity class instead of using the one they gave which keeps
+  all the details
