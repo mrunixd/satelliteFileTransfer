@@ -3,19 +3,36 @@ package unsw.blackout;
 import unsw.utils.Angle;
 
 public class TeleportingSatellite extends Satellite {
-    private int linearSpeed = 1000;
-    private int range = 200000;
     private Angle initial;
     private boolean clockwise;
+    private int sendingBandwidth;
+    private int recievingBandwidth;
+    private int storage;
 
-    public TeleportingSatellite(String satelliteId, String type, double height, Angle position) {
-        super(satelliteId, type, height, position);
+    public TeleportingSatellite(String satelliteId, String type, double height, Angle position, int linearSpeed,
+            int range) {
+        super(satelliteId, type, height, position, linearSpeed, range);
         this.initial = position;
+        this.sendingBandwidth = 10;
+        this.recievingBandwidth = 15;
+        this.storage = 200;
+    }
+
+    public int getSendingBandwidth() {
+        return this.sendingBandwidth;
+    }
+
+    public int getRecievingBandwidth() {
+        return this.recievingBandwidth;
+    }
+
+    public int getStorage() {
+        return this.storage;
     }
 
     @Override
     public void moveSatellite() {
-        double angularVelocity = linearSpeed / super.getHeight();
+        double angularVelocity = getLinearSpeed() / super.getHeight();
         double teleportDegVal = (initial.toDegrees() + 180) % 360;
         Angle newAngle;
 
@@ -34,9 +51,5 @@ public class TeleportingSatellite extends Satellite {
         }
 
         super.setPosition(newAngle);
-    }
-
-    public int getRange() {
-        return this.range;
     }
 }

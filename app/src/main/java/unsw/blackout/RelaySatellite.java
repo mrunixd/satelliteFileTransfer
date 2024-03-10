@@ -3,17 +3,15 @@ package unsw.blackout;
 import unsw.utils.Angle;
 
 public class RelaySatellite extends Satellite {
-    private int linearSpeed = 1500;
-    private int range = 300000;
     private boolean clockwise = true;
 
-    public RelaySatellite(String satelliteId, String type, double height, Angle position) {
-        super(satelliteId, type, height, position);
+    public RelaySatellite(String satelliteId, String type, double height, Angle position, int linearSpeed, int range) {
+        super(satelliteId, type, height, position, linearSpeed, range);
     }
 
     @Override
     public void moveSatellite() {
-        double angularVelocity = linearSpeed / super.getHeight();
+        double angularVelocity = getLinearSpeed() / super.getHeight();
         Angle original = super.getPosition();
         Angle newAngle = super.getPosition().subtract(Angle.fromRadians(angularVelocity));
 
@@ -38,9 +36,5 @@ public class RelaySatellite extends Satellite {
         }
 
         super.setPosition(newAngle);
-    }
-
-    public int getRange() {
-        return this.range;
     }
 }

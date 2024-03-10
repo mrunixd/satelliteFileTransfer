@@ -1,47 +1,33 @@
 package unsw.blackout;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
-public abstract class Satellite implements Entity {
-    private String satelliteId;
-    private String type;
+public abstract class Satellite extends Entity {
     private double height;
-    private Angle position;
-    private List<File> files = new ArrayList<>();
+    private int linearSpeed;
 
-    public Satellite(String satelliteId, String type, double height, Angle position) {
-        this.satelliteId = satelliteId;
-        this.type = type;
+    public Satellite(String satelliteId, String type, double height, Angle position, int linearSpeed, int range) {
+        super(satelliteId, type, position, range);
         this.height = height;
-        this.position = position;
-    }
-
-    public String getSatelliteId() {
-        return this.satelliteId;
-    }
-
-    public Angle getPosition() {
-        return this.position;
-    }
-
-    public void setPosition(Angle position) {
-        this.position = position;
+        this.linearSpeed = linearSpeed;
     }
 
     public double getHeight() {
         return this.height;
     }
 
-    public Map<String, FileInfoResponse> getFiles() {
+    public int getLinearSpeed() {
+        return this.linearSpeed;
+    }
+
+    public Map<String, FileInfoResponse> getInfoFiles() {
         Map<String, FileInfoResponse> fileList = new HashMap<>();
 
-        for (File file : files) {
+        for (File file : getFiles()) {
             fileList.put(file.getName(),
                     new FileInfoResponse(file.getName(), file.getContent(), file.getContent().length(), true));
         }
@@ -51,9 +37,9 @@ public abstract class Satellite implements Entity {
     public Angle calculateNewAngle(double angularVelocity, boolean clockwise) {
         Angle newAngle;
         if (clockwise) {
-            newAngle = this.position.subtract(Angle.fromRadians(angularVelocity));
+            newAngle = getPosition().subtract(Angle.fromRadians(angularVelocity));
         } else {
-            newAngle = this.position.add(Angle.fromRadians(angularVelocity));
+            newAngle = getPosition().add(Angle.fromRadians(angularVelocity));
         }
 
         newAngle = placeDegreesInRange(newAngle);
@@ -74,11 +60,56 @@ public abstract class Satellite implements Entity {
 
     @Override
     public EntityInfoResponse getInfo() {
-        EntityInfoResponse info = new EntityInfoResponse(this.satelliteId, this.position, this.height, this.type,
-                getFiles());
+        EntityInfoResponse info = new EntityInfoResponse(getId(), getPosition(), this.height, getType(),
+                getInfoFiles());
         return info;
     }
 
-    public abstract void moveSatellite();
+    public boolean checkSendingBandwidth() {
+        if (this instanceof StandardSatellite) {
+            StandardSatellite s = (StandardSatellite) this;
 
+            int numFiles = getFiles().size();
+            return numFiles + 1 <= s.getSendingBandwidth();
+        } else {
+            TeleportingSatellite t = (TeleportingSatellite) this;
+
+            int numFiles = getFiles().size();
+            return numFiles + 1 <= t.getSendingBandwidth();
+        }
+    }
+
+    public boolean checkRecievingBandwidth() {
+        if (this instanceof StandardSatellite) {
+            StandardSatellite s = (StandardSatellite) this;
+
+            int numFiles = getFiles().size();
+            return numFiles + 1 <= s.getRecievingBandwidth();
+        } else {
+            TeleportingSatellite t = (TeleportingSatellite) this;
+
+            int numFiles = getFiles().size();
+            return numFiles + 1 <= t.getRecievingBandwidth();
+        }
+    }
+
+    public String checkStorage(int fileSize) {
+        if (this instanceof StandardSatellite) {
+            StandardSatellite s = (StandardSatellite) this;
+
+            if (getFiles().size() > 0) {
+                return "Files";
+            } else if (fileSize > s.getStorage()) {
+                return "Storage";
+            }
+        } else {
+            TeleportingSatellite t = (TeleportingSatellite) this;
+            if (fileSize > t.getStorage()) {
+                return "Storage";
+            }
+        }
+        return " ";
+    }
+
+    public abstract void moveSatellite();
 }

@@ -12,6 +12,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import unsw.blackout.FileTransferException.VirtualFileAlreadyExistsException;
+import unsw.blackout.FileTransferException.VirtualFileNoBandwidthException;
+import unsw.blackout.FileTransferException.VirtualFileNoStorageSpaceException;
 import unsw.blackout.FileTransferException.VirtualFileNotFoundException;
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
@@ -32,13 +34,13 @@ public class BlackoutController {
 
         switch (type) {
         case "HandheldDevice":
-            device = new HandheldDevice(deviceId, type, position);
+            device = new HandheldDevice(deviceId, type, position, 50000);
             break;
         case "LaptopDevice":
-            device = new LaptopDevice(deviceId, type, position);
+            device = new LaptopDevice(deviceId, type, position, 100000);
             break;
         default:
-            device = new DesktopDevice(deviceId, type, position);
+            device = new DesktopDevice(deviceId, type, position, 200000);
         }
 
         deviceList.add(device);
@@ -54,13 +56,13 @@ public class BlackoutController {
 
         switch (type) {
         case "StandardSatellite":
-            satellite = new StandardSatellite(satelliteId, type, height, position);
+            satellite = new StandardSatellite(satelliteId, type, height, position, 2500, 150000);
             break;
         case "TeleportingSatellite":
-            satellite = new TeleportingSatellite(satelliteId, type, height, position);
+            satellite = new TeleportingSatellite(satelliteId, type, height, position, 1000, 200000);
             break;
         default:
-            satellite = new RelaySatellite(satelliteId, type, height, position);
+            satellite = new RelaySatellite(satelliteId, type, height, position, 1500, 300000);
         }
 
         satelliteList.add(satellite);
@@ -75,7 +77,7 @@ public class BlackoutController {
         List<String> arr = new ArrayList<String>();
 
         for (Device device : deviceList) {
-            arr.add(device.getDeviceId());
+            arr.add(device.getId());
         }
         return arr;
     }
@@ -83,7 +85,7 @@ public class BlackoutController {
     public List<String> listSatelliteIds() {
         List<String> arr = new ArrayList<String>();
         for (Satellite satellite : satelliteList) {
-            arr.add(satellite.getSatelliteId());
+            arr.add(satellite.getId());
         }
         return arr;
     }
@@ -108,7 +110,7 @@ public class BlackoutController {
 
     private Device findByDeviceId(String deviceId) {
         for (Device device : deviceList) {
-            if (device.getDeviceId().equals(deviceId)) {
+            if (device.getId().equals(deviceId)) {
                 return device;
             }
         }
@@ -118,7 +120,7 @@ public class BlackoutController {
 
     private Satellite findBySatelliteId(String satelliteId) {
         for (Satellite satellite : satelliteList) {
-            if (satellite.getSatelliteId().equals(satelliteId)) {
+            if (satellite.getId().equals(satelliteId)) {
                 return satellite;
             }
         }
@@ -169,10 +171,13 @@ public class BlackoutController {
                     visited.add(e);
                     continue;
                 }
-                double distance = getDistance(entity.getInfo().getHeight(), entity.getInfo().getPosition(),
-                        e.getInfo().getHeight(), e.getInfo().getPosition());
-                boolean isVisible = isVisible(entity.getInfo().getHeight(), entity.getInfo().getPosition(),
-                        e.getInfo().getHeight(), e.getInfo().getPosition());
+                EntityInfoResponse eInfo = e.getInfo();
+                EntityInfoResponse entityInfo = entity.getInfo();
+
+                double distance = getDistance(entityInfo.getHeight(), entity.getPosition(), eInfo.getHeight(),
+                        e.getPosition());
+                boolean isVisible = isVisible(entityInfo.getHeight(), entity.getPosition(), eInfo.getHeight(),
+                        e.getPosition());
 
                 if (!visited.contains(e) && distance < e.getRange() && distance > 0 && isVisible) {
                     if (e instanceof RelaySatellite) {
@@ -196,13 +201,28 @@ public class BlackoutController {
         Map<String, FileInfoResponse> recipientFiles = recipient.getInfo().getFiles();
 
         FileInfoResponse file = checkFile(senderFiles, fileName);
-
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);
-        }
-
-        if (checkFile(recipientFiles, fileName) != null) {
+        } else if (sender instanceof Satellite) {
+            Satellite senderSatellite = (Satellite) sender;
+            if (!senderSatellite.checkSendingBandwidth()) {
+                throw new VirtualFileNoBandwidthException(senderSatellite.getId());
+            }
+        } else if (recipient instanceof Satellite) {
+            Satellite reciepientSatellite = (Satellite) recipient;
+            if (!reciepientSatellite.checkRecievingBandwidth()) {
+                throw new VirtualFileNoBandwidthException(reciepientSatellite.getId());
+            }
+        } else if (checkFile(recipientFiles, fileName) != null) {
             throw new VirtualFileAlreadyExistsException(fileName);
+        } else if (recipient instanceof Satellite) {
+            Satellite reciepientSatellite = (Satellite) recipient;
+
+            if (reciepientSatellite.checkStorage(file.getFileSize()).equals("Files")) {
+                throw new VirtualFileNoStorageSpaceException("Max Files Reached");
+            } else if (reciepientSatellite.checkStorage(file.getFileSize()).equals("Storage")) {
+                throw new VirtualFileNoStorageSpaceException("Max Storage Reached");
+            }
         }
 
     }
