@@ -37,7 +37,7 @@ public class TeleportingSatellite extends Satellite {
     @Override
     public void moveSatellite() {
         double angularVelocity = getLinearSpeed() / super.getHeight();
-        double teleportDegVal = (initial.toDegrees() + 180) % 360;
+        double teleportDegVal = 180;
         Angle newAngle;
 
         newAngle = calculateNewAngle(angularVelocity, clockwise);
@@ -50,7 +50,7 @@ public class TeleportingSatellite extends Satellite {
 
         if (crossesClockwise || crossesAntiClockwise) {
             // Teleport back to the initial position
-            newAngle = this.initial;
+            newAngle = Angle.fromDegrees(0);
             this.clockwise = !this.clockwise;
         }
 
