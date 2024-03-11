@@ -235,6 +235,8 @@ public class BlackoutController {
                 ((StandardSatellite) recipient).setStorage(tFile.getContent().length());
             }
         }
+
+        System.out.println(recipient.getFiles());
         addFileTransfer(sender, recipient, tFile);
 
     }
@@ -254,6 +256,8 @@ public class BlackoutController {
     }
 
     public void incrementState() {
+        List<FileTransfer> transfersToRemove = new ArrayList<>();
+
         for (FileTransfer fileTransfer : fileTransferState) {
             Entity sender = fileTransfer.getSender();
             Entity recipient = fileTransfer.getrecipient();
@@ -261,23 +265,30 @@ public class BlackoutController {
             List<File> files = recipient.getFiles();
 
             if (!entitiesInRange.contains(recipient.getId())) {
-                files.remove(fileTransfer.getFile());
-                recipient.setFiles(files);
-                fileTransferState.remove(fileTransfer);
+                System.out.println("Current files before delete: " + recipient.getFiles());
+                recipient.removeFile(fileTransfer.getFile());
+                System.out.println("Current files after delete: " + recipient.getFiles());
+                transfersToRemove.add(fileTransfer);
+                System.out.println("Not in range, File removed: " + recipient.getId());
                 // need to check which line is going in after initial move
+            } else if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize()) {
+                System.out.println("File transfer complete, File removed: " + recipient.getId());
+                transfersToRemove.add(fileTransfer);
             } else {
                 int curr = fileTransfer.getTransferredBytes();
-                fileTransfer.setTransferredBytes(curr++);
+                fileTransfer.setTransferredBytes(++curr);
+                System.out.println(recipient.getId() + " Transferred Bytes: " + curr);
 
                 String newContent = fileTransfer.getFile().getContent().substring(0, curr);
                 File newFile = new File(fileTransfer.getFile().getName(), newContent,
                         fileTransfer.getFile().getContent().length());
-
+                // TODO: needed to remove files from the list, currently not being removed
                 files.add(newFile);
                 recipient.setFiles(files);
+                System.out.println(recipient.getId() + " newFile: " + newFile.getContent());
             }
-            // need to check whether its completed transfer to remove from state
         }
+        fileTransferState.removeAll(transfersToRemove);
     }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {

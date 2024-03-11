@@ -49,6 +49,10 @@ public abstract class Entity {
         return this.files;
     }
 
+    public void removeFile(File file) {
+        this.files.remove(file);
+    }
+
     public void setFiles(List<File> files) {
         this.files = files;
     }
