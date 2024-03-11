@@ -48,3 +48,42 @@
   the data or something else
 - possibly make a new Entity class instead of using the one they gave which keeps
   all the details
+
+## Input #4
+
+### Design Process
+
+- major refactoring of code
+- entity is now an abstract class instead of interface as many of the functions in
+  device and satellite are very similar (also satellites and devices are entities)
+- individual device subclasses may not be important, I am leaving for now incase I
+  need it later
+- this allowed me to get rid of some repetitive code, also by creating entity class,
+  I am able to access information about the entity much easier rather than the
+  getEntityInfo method
+
+### Reflection
+
+- at this stage I was quite stuck as I felt that my code was very messy and all
+  over the place, but now it is slightly better
+- I definitely needed to plan for the next stage better so by simplifying the code
+  now, it makes the future slightly easier
+
+## Input #5
+
+### Design Process
+
+- I am combatting file transfer by keeping a state of all the files that are
+  currently being transferred
+- this means that at each simulation this state is updated to match the file transfer
+- by adding a new class FileTransfer and including a FileTransferState list in
+  blackout controller, I can manage what is happening betwen files
+- the file transfer carries info on the sender, reciever, bytes sent and size of the
+  file
+
+### Reflection
+
+- I have not completed the implementation but I have questions whether my
+  FileTransferState list should be kept in blackout or as its own seperate class
+- but to not over complicate it for now, I have kept it in the controller and
+  can change it later if needed

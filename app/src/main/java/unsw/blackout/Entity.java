@@ -40,13 +40,17 @@ public abstract class Entity {
         return this.type;
     }
 
-    public void addFile(String filename, String content) {
-        File file = new File(filename, content);
+    public void addFile(String filename, String content, int size) {
+        File file = new File(filename, content, size);
         files.add(file);
     }
 
     public List<File> getFiles() {
         return this.files;
+    }
+
+    public void setFiles(List<File> files) {
+        this.files = files;
     }
 
     public abstract EntityInfoResponse getInfo();

@@ -30,6 +30,10 @@ public class TeleportingSatellite extends Satellite {
         return this.storage;
     }
 
+    public void setStorage(int sizeOfFile) {
+        this.storage -= sizeOfFile;
+    }
+
     @Override
     public void moveSatellite() {
         double angularVelocity = getLinearSpeed() / super.getHeight();

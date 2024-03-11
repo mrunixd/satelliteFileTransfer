@@ -28,6 +28,7 @@ import unsw.utils.Angle;
 public class BlackoutController {
     private ArrayList<Device> deviceList = new ArrayList<Device>();
     private ArrayList<Satellite> satelliteList = new ArrayList<Satellite>();
+    private ArrayList<FileTransfer> fileTransferState = new ArrayList<FileTransfer>();
 
     public void createDevice(String deviceId, String type, Angle position) {
         Device device;
@@ -92,7 +93,7 @@ public class BlackoutController {
 
     public void addFileToDevice(String deviceId, String filename, String content) {
         Device target = findByDeviceId(deviceId);
-        target.addFile(filename, content);
+        target.addFile(filename, content, content.length());
     }
 
     public EntityInfoResponse getInfo(String id) {
@@ -132,7 +133,7 @@ public class BlackoutController {
         for (Satellite satellite : satelliteList) {
             satellite.moveSatellite();
         }
-        // transfer byte of file
+        incrementState();
 
     }
 
@@ -225,6 +226,17 @@ public class BlackoutController {
             }
         }
 
+        File tFile = new File(file.getFilename(), file.getData(), file.getData().length());
+        if (recipient instanceof Satellite) {
+            recipient.addFile(tFile.getName(), "", file.getData().length());
+            if (recipient instanceof TeleportingSatellite) {
+                ((TeleportingSatellite) recipient).setStorage(tFile.getContent().length());
+            } else {
+                ((StandardSatellite) recipient).setStorage(tFile.getContent().length());
+            }
+        }
+        addFileTransfer(sender, recipient, tFile);
+
     }
 
     private FileInfoResponse checkFile(Map<String, FileInfoResponse> fileList, String fileName) {
@@ -234,6 +246,38 @@ public class BlackoutController {
             }
         }
         return null;
+    }
+
+    public void addFileTransfer(Entity sender, Entity recipient, File file) {
+        FileTransfer transferFile = new FileTransfer(sender, recipient, file);
+        fileTransferState.add(transferFile);
+    }
+
+    public void incrementState() {
+        for (FileTransfer fileTransfer : fileTransferState) {
+            Entity sender = fileTransfer.getSender();
+            Entity recipient = fileTransfer.getrecipient();
+            List<String> entitiesInRange = communicableEntitiesInRange(sender.getId());
+            List<File> files = recipient.getFiles();
+
+            if (!entitiesInRange.contains(recipient.getId())) {
+                files.remove(fileTransfer.getFile());
+                recipient.setFiles(files);
+                fileTransferState.remove(fileTransfer);
+                // need to check which line is going in after initial move
+            } else {
+                int curr = fileTransfer.getTransferredBytes();
+                fileTransfer.setTransferredBytes(curr++);
+
+                String newContent = fileTransfer.getFile().getContent().substring(0, curr);
+                File newFile = new File(fileTransfer.getFile().getName(), newContent,
+                        fileTransfer.getFile().getContent().length());
+
+                files.add(newFile);
+                recipient.setFiles(files);
+            }
+            // need to check whether its completed transfer to remove from state
+        }
     }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {

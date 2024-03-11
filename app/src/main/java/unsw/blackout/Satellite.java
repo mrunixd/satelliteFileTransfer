@@ -28,8 +28,7 @@ public abstract class Satellite extends Entity {
         Map<String, FileInfoResponse> fileList = new HashMap<>();
 
         for (File file : getFiles()) {
-            fileList.put(file.getName(),
-                    new FileInfoResponse(file.getName(), file.getContent(), file.getContent().length(), true));
+            fileList.put(file.getName(), new FileInfoResponse(file.getName(), file.getContent(), file.getSize(), true));
         }
         return fileList;
     }
