@@ -6,14 +6,12 @@ public class TeleportingSatellite extends Satellite {
     private boolean clockwise;
     private int sendingBandwidth;
     private int recievingBandwidth;
-    private int storage;
 
     public TeleportingSatellite(String satelliteId, String type, double height, Angle position, int linearSpeed,
             int range) {
         super(satelliteId, type, height, position, linearSpeed, range);
         this.sendingBandwidth = 10;
         this.recievingBandwidth = 15;
-        this.storage = 200;
     }
 
     public int getSendingBandwidth() {
@@ -22,14 +20,6 @@ public class TeleportingSatellite extends Satellite {
 
     public int getRecievingBandwidth() {
         return this.recievingBandwidth;
-    }
-
-    public int getStorage() {
-        return this.storage;
-    }
-
-    public void setStorage(int sizeOfFile) {
-        this.storage -= sizeOfFile;
     }
 
     @Override

@@ -5,14 +5,12 @@ import unsw.utils.Angle;
 public class StandardSatellite extends Satellite {
     private int sendingBandwidth;
     private int recievingBandwidth;
-    private int storage;
 
     public StandardSatellite(String satelliteId, String type, double height, Angle position, int linearSpeed,
             int range) {
         super(satelliteId, type, height, position, linearSpeed, range);
         this.sendingBandwidth = 1;
         this.recievingBandwidth = 1;
-        this.storage = 80;
     }
 
     public int getSendingBandwidth() {
@@ -21,14 +19,6 @@ public class StandardSatellite extends Satellite {
 
     public int getRecievingBandwidth() {
         return this.recievingBandwidth;
-    }
-
-    public int getStorage() {
-        return this.storage;
-    }
-
-    public void setStorage(int sizeOfFile) {
-        this.storage -= sizeOfFile;
     }
 
     @Override

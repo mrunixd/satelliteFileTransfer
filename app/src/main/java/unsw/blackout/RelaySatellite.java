@@ -9,6 +9,14 @@ public class RelaySatellite extends Satellite {
         super(satelliteId, type, height, position, linearSpeed, range);
     }
 
+    public int getSendingBandwidth() {
+        return 0;
+    }
+
+    public int getRecievingBandwidth() {
+        return 0;
+    }
+
     @Override
     public void moveSatellite() {
         double angularVelocity = getLinearSpeed() / super.getHeight();
@@ -37,4 +45,5 @@ public class RelaySatellite extends Satellite {
 
         super.setPosition(newAngle);
     }
+
 }

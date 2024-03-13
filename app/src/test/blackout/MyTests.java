@@ -1,6 +1,7 @@
 package blackout;
 
 import static blackout.TestHelpers.assertListAreEqualIgnoringOrder;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
@@ -9,6 +10,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 import unsw.blackout.BlackoutController;
+import unsw.blackout.FileTransferException;
 import unsw.utils.Angle;
 
 public class MyTests {
@@ -80,6 +82,23 @@ public class MyTests {
         assertListAreEqualIgnoringOrder(Arrays.asList("DeviceB", "Satellite1"),
                 controller.communicableEntitiesInRange("Relay"));
         assertListAreEqualIgnoringOrder(Arrays.asList("Relay"), controller.communicableEntitiesInRange("DeviceB"));
+
+    }
+
+    @Test
+    public void noBandwidthException() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "StandardSatellite", 89964, Angle.fromDegrees(7.3816));
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(11.4075));
+
+        controller.addFileToDevice("DeviceA", "NonExistentFile", "123");
+        controller.addFileToDevice("DeviceA", "AnotherFile", "123");
+
+        assertThrows(FileTransferException.VirtualFileNoBandwidthException.class, () -> {
+            controller.sendFile("NonExistentFile", "DeviceA", "SatelliteA");
+            controller.sendFile("AnotherFile", "DeviceA", "SatelliteA");
+        });
 
     }
 }

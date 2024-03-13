@@ -203,25 +203,13 @@ public class BlackoutController {
 
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);
-        }
-
-        if (sender instanceof Satellite) {
-            Satellite senderSatellite = (Satellite) sender;
-            if (!senderSatellite.checkSendingBandwidth()) {
-                throw new VirtualFileNoBandwidthException(senderSatellite.getId());
-            }
-        } else if (recipient instanceof Satellite) {
-            Satellite reciepientSatellite = (Satellite) recipient;
-            if (!reciepientSatellite.checkRecievingBandwidth()) {
-                throw new VirtualFileNoBandwidthException(reciepientSatellite.getId());
-            }
-        }
-
-        if (File.checkFileExists(recipientFiles, fileName) != null) {
+        } else if (!sender.checkSendingBandwidth()) {
+            throw new VirtualFileNoBandwidthException(sender.getId());
+        } else if (!recipient.checkRecievingBandwidth()) {
+            throw new VirtualFileNoBandwidthException(recipient.getId());
+        } else if (File.checkFileExists(recipientFiles, fileName) != null) {
             throw new VirtualFileAlreadyExistsException(fileName);
-        }
-
-        if (recipient instanceof Satellite) {
+        } else if (recipient instanceof Satellite) {
             Satellite reciepientSatellite = (Satellite) recipient;
 
             if (reciepientSatellite.checkStorage(file.getSize()).equals("Files")) {
@@ -231,16 +219,15 @@ public class BlackoutController {
             }
         }
 
+        addFileTransfer(sender, recipient, file);
+        sender.addFilesSending(1);
+        recipient.addFilesRecieving(1);
+
         if (recipient instanceof Satellite) {
-            recipient.addFile(file.getName(), "", file.getSize());
-            if (recipient instanceof TeleportingSatellite) {
-                ((TeleportingSatellite) recipient).setStorage(file.getSize());
-            } else {
-                ((StandardSatellite) recipient).setStorage(file.getSize());
-            }
+            ((Satellite) recipient).setStorage(file.getSize());
         }
 
-        addFileTransfer(sender, recipient, file);
+        recipient.addFile(file.getName(), "", file.getSize());
 
     }
 
@@ -255,37 +242,48 @@ public class BlackoutController {
             Entity sender = fileTransfer.getSender();
             Entity recipient = fileTransfer.getrecipient();
             List<String> entitiesInRange = communicableEntitiesInRange(sender.getId());
-            List<File> files = recipient.getFiles();
-            File fileToRemove = null;
 
             if (!entitiesInRange.contains(recipient.getId())) {
-                for (File file : files) {
-                    if (file.getName().equals(fileTransfer.getFile().getName())) {
-                        fileToRemove = file;
-                    }
-                }
-                recipient.removeFile(fileToRemove);
+                recipient.removeFile(fileTransfer.getFile().getName());
                 System.out.println("File removed");
+
                 transfersToRemove.add(fileTransfer);
 
-            } else if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize() + 1) {
-                transfersToRemove.add(fileTransfer);
+                sender.addFilesSending(-1);
+                recipient.addFilesRecieving(-1);
 
             } else {
                 int curr = fileTransfer.getTransferredBytes();
-                String newContent = fileTransfer.getFile().getContent().substring(0, curr);
-                File newFile = new File(fileTransfer.getFile().getName(), newContent,
-                        fileTransfer.getFile().getContent().length());
+                int recievingBandwidth = recipient.calcRecievingBandwidth();
+                int sendingBandwidth = sender.calcSendingBandwidth();
 
-                fileTransfer.setTransferredBytes(++curr);
-                for (File file : files) {
-                    if (file.getName().equals(fileTransfer.getFile().getName())) {
-                        fileToRemove = file;
-                    }
+                System.out.println("Num files sending: " + sender.getFilesSending());
+                System.out.println("Num files recieving: " + recipient.getFilesRecieving());
+
+                curr += recievingBandwidth < sendingBandwidth ? recievingBandwidth : sendingBandwidth;
+                System.out.println("Recieving Bandwidth: " + recievingBandwidth);
+                System.out.println("Sending Bandwidth: " + sendingBandwidth);
+                fileTransfer.setTransferredBytes(curr);
+
+                curr = curr < fileTransfer.getFile().getSize() ? curr : fileTransfer.getFile().getSize();
+                System.out.println("How many bytes transferred: " + curr);
+
+                String newContent = fileTransfer.getFile().getContent().substring(0, curr);
+
+                recipient.removeFile(fileTransfer.getFile().getName());
+                recipient.addFile(fileTransfer.getFile().getName(), newContent, fileTransfer.getSize());
+
+                if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize()) {
+                    transfersToRemove.add(fileTransfer);
+
+                    System.out.println("File removed");
+                    sender.addFilesSending(-1);
+                    recipient.addFilesRecieving(-1);
+
+                    System.out.println("Num files sending: " + sender.getFilesSending());
+                    System.out.println("Num files recieving: " + recipient.getFilesRecieving());
+
                 }
-                files.remove(fileToRemove);
-                files.add(newFile);
-                recipient.setFiles(files);
             }
         }
         fileTransferState.removeAll(transfersToRemove);

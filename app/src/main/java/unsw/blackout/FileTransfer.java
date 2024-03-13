@@ -5,12 +5,14 @@ public class FileTransfer {
     private Entity recipient;
     private int transferredBytes;
     private File file;
+    private int size;
 
     public FileTransfer(Entity sender, Entity recipient, File file) {
         this.sender = sender;
         this.recipient = recipient;
         this.file = file;
-        this.transferredBytes = 1;
+        this.transferredBytes = 0;
+        this.size = file.getContent().length();
     }
 
     public Entity getSender() {
@@ -31,5 +33,9 @@ public class FileTransfer {
 
     public void setTransferredBytes(int transferredBytes) {
         this.transferredBytes = transferredBytes;
+    }
+
+    public int getSize() {
+        return this.size;
     }
 }

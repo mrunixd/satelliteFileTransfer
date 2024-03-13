@@ -12,12 +12,16 @@ public abstract class Entity {
     private Angle position;
     private int range;
     private List<File> files = new ArrayList<>();
+    private int filesSending;
+    private int filesRecieving;
 
     public Entity(String id, String type, Angle position, int range) {
         this.id = id;
         this.type = type;
         this.position = position;
         this.range = range;
+        this.filesSending = 0;
+        this.filesRecieving = 0;
     }
 
     public String getId() {
@@ -49,14 +53,45 @@ public abstract class Entity {
         return this.files;
     }
 
-    public void removeFile(File file) {
-        this.files.remove(file);
+    public void removeFile(String fileName) {
+        File fileToRemove = null;
+        for (File file : files) {
+            if (file.getName().equals(fileName)) {
+                fileToRemove = file;
+            }
+        }
+
+        this.files.remove(fileToRemove);
     }
 
-    public void setFiles(List<File> files) {
-        this.files = files;
+    public int getFilesSending() {
+        return this.filesSending;
+    }
+
+    public int getFilesRecieving() {
+        return this.filesRecieving;
+    }
+
+    public void addFilesSending(int numFiles) {
+        this.filesSending += numFiles;
+    }
+
+    public void addFilesRecieving(int numFiles) {
+        this.filesRecieving += numFiles;
     }
 
     public abstract EntityInfoResponse getInfo();
+
+    public abstract boolean checkSendingBandwidth();
+
+    public abstract boolean checkRecievingBandwidth();
+
+    public abstract int calcSendingBandwidth();
+
+    public abstract int calcRecievingBandwidth();
+
+    public abstract int calcSendingBandwidth(int files);
+
+    public abstract int calcRecievingBandwidth(int files);
 
 }

@@ -18,7 +18,7 @@ public abstract class Device extends Entity {
 
         for (File file : getFiles()) {
             fileList.put(file.getName(),
-                    new FileInfoResponse(file.getName(), file.getContent(), file.getContent().length(), true));
+                    new FileInfoResponse(file.getName(), file.getContent(), file.getSize(), file.isFileComplete()));
         }
         return fileList;
     }
@@ -26,6 +26,38 @@ public abstract class Device extends Entity {
     @Override
     public EntityInfoResponse getInfo() {
         return new EntityInfoResponse(getId(), getPosition(), RADIUS_OF_JUPITER, getType(), getInfoFiles());
+    }
+
+    @Override
+    public int calcSendingBandwidth() {
+
+        return 15;
+    }
+
+    @Override
+    public int calcRecievingBandwidth() {
+        return 15;
+    }
+
+    @Override
+    public int calcSendingBandwidth(int files) {
+
+        return 15;
+    }
+
+    @Override
+    public int calcRecievingBandwidth(int files) {
+        return 15;
+    }
+
+    @Override
+    public boolean checkSendingBandwidth() {
+        return true;
+    }
+
+    @Override
+    public boolean checkRecievingBandwidth() {
+        return true;
     }
 
 }
