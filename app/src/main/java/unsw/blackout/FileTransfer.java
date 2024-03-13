@@ -10,7 +10,7 @@ public class FileTransfer {
         this.sender = sender;
         this.recipient = recipient;
         this.file = file;
-        this.transferredBytes = 0;
+        this.transferredBytes = 1;
     }
 
     public Entity getSender() {

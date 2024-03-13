@@ -87,3 +87,15 @@
   FileTransferState list should be kept in blackout or as its own seperate class
 - but to not over complicate it for now, I have kept it in the controller and
   can change it later if needed
+
+## Input #6
+
+### Questions for tutor
+
+- Look at switch case thing we talked about in tute in my code
+- Check why my remove function is not working, list.remove(obj)
+- Is it okay to have Device and Satellite inheriting entity and the sub
+  classes inheriting Device and Satellite
+- SendFile function, excessive use of if statements and instanceof
+- What is the point of EntityInfoResponse, if I can make my entity class
+- Should I have a seperate class for my state?

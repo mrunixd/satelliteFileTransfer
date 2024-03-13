@@ -7,7 +7,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -16,7 +15,6 @@ import unsw.blackout.FileTransferException.VirtualFileNoBandwidthException;
 import unsw.blackout.FileTransferException.VirtualFileNoStorageSpaceException;
 import unsw.blackout.FileTransferException.VirtualFileNotFoundException;
 import unsw.response.models.EntityInfoResponse;
-import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
 /**
@@ -148,6 +146,7 @@ public class BlackoutController {
     }
 
     public List<String> communicableEntitiesInRange(String id) {
+
         Queue<Entity> q = new ArrayDeque<>();
         Set<Entity> visited = new HashSet<>();
         List<String> entitiesinRange = new ArrayList<>();
@@ -163,7 +162,6 @@ public class BlackoutController {
         // System.out.println("Entity: " + id);
         while (!q.isEmpty()) {
             entity = q.remove();
-            System.out.println("Entities to search: " + entities);
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
                 // System.out.println("Searching: " + e.getInfo().getDeviceId());
@@ -198,13 +196,16 @@ public class BlackoutController {
         Entity sender = findEntityById(fromId);
         Entity recipient = findEntityById(toId);
 
-        Map<String, FileInfoResponse> senderFiles = sender.getInfo().getFiles();
-        Map<String, FileInfoResponse> recipientFiles = recipient.getInfo().getFiles();
+        List<File> senderFiles = sender.getFiles();
+        List<File> recipientFiles = recipient.getFiles();
 
-        FileInfoResponse file = checkFile(senderFiles, fileName);
+        File file = File.checkFileExists(senderFiles, fileName);
+
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);
-        } else if (sender instanceof Satellite) {
+        }
+
+        if (sender instanceof Satellite) {
             Satellite senderSatellite = (Satellite) sender;
             if (!senderSatellite.checkSendingBandwidth()) {
                 throw new VirtualFileNoBandwidthException(senderSatellite.getId());
@@ -214,40 +215,33 @@ public class BlackoutController {
             if (!reciepientSatellite.checkRecievingBandwidth()) {
                 throw new VirtualFileNoBandwidthException(reciepientSatellite.getId());
             }
-        } else if (checkFile(recipientFiles, fileName) != null) {
+        }
+
+        if (File.checkFileExists(recipientFiles, fileName) != null) {
             throw new VirtualFileAlreadyExistsException(fileName);
-        } else if (recipient instanceof Satellite) {
+        }
+
+        if (recipient instanceof Satellite) {
             Satellite reciepientSatellite = (Satellite) recipient;
 
-            if (reciepientSatellite.checkStorage(file.getFileSize()).equals("Files")) {
+            if (reciepientSatellite.checkStorage(file.getSize()).equals("Files")) {
                 throw new VirtualFileNoStorageSpaceException("Max Files Reached");
-            } else if (reciepientSatellite.checkStorage(file.getFileSize()).equals("Storage")) {
+            } else if (reciepientSatellite.checkStorage(file.getSize()).equals("Storage")) {
                 throw new VirtualFileNoStorageSpaceException("Max Storage Reached");
             }
         }
 
-        File tFile = new File(file.getFilename(), file.getData(), file.getData().length());
         if (recipient instanceof Satellite) {
-            recipient.addFile(tFile.getName(), "", file.getData().length());
+            recipient.addFile(file.getName(), "", file.getSize());
             if (recipient instanceof TeleportingSatellite) {
-                ((TeleportingSatellite) recipient).setStorage(tFile.getContent().length());
+                ((TeleportingSatellite) recipient).setStorage(file.getSize());
             } else {
-                ((StandardSatellite) recipient).setStorage(tFile.getContent().length());
+                ((StandardSatellite) recipient).setStorage(file.getSize());
             }
         }
 
-        System.out.println(recipient.getFiles());
-        addFileTransfer(sender, recipient, tFile);
+        addFileTransfer(sender, recipient, file);
 
-    }
-
-    private FileInfoResponse checkFile(Map<String, FileInfoResponse> fileList, String fileName) {
-        for (FileInfoResponse fileInfo : fileList.values()) {
-            if (fileInfo.getFilename().equals(fileName)) {
-                return fileInfo;
-            }
-        }
-        return null;
     }
 
     public void addFileTransfer(Entity sender, Entity recipient, File file) {
@@ -257,35 +251,41 @@ public class BlackoutController {
 
     public void incrementState() {
         List<FileTransfer> transfersToRemove = new ArrayList<>();
-
         for (FileTransfer fileTransfer : fileTransferState) {
             Entity sender = fileTransfer.getSender();
             Entity recipient = fileTransfer.getrecipient();
             List<String> entitiesInRange = communicableEntitiesInRange(sender.getId());
             List<File> files = recipient.getFiles();
+            File fileToRemove = null;
 
             if (!entitiesInRange.contains(recipient.getId())) {
-                System.out.println("Current files before delete: " + recipient.getFiles());
-                recipient.removeFile(fileTransfer.getFile());
-                System.out.println("Current files after delete: " + recipient.getFiles());
+                for (File file : files) {
+                    if (file.getName().equals(fileTransfer.getFile().getName())) {
+                        fileToRemove = file;
+                    }
+                }
+                recipient.removeFile(fileToRemove);
+                System.out.println("File removed");
                 transfersToRemove.add(fileTransfer);
-                System.out.println("Not in range, File removed: " + recipient.getId());
-                // need to check which line is going in after initial move
-            } else if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize()) {
-                System.out.println("File transfer complete, File removed: " + recipient.getId());
+
+            } else if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize() + 1) {
                 transfersToRemove.add(fileTransfer);
+
             } else {
                 int curr = fileTransfer.getTransferredBytes();
-                fileTransfer.setTransferredBytes(++curr);
-                System.out.println(recipient.getId() + " Transferred Bytes: " + curr);
-
                 String newContent = fileTransfer.getFile().getContent().substring(0, curr);
                 File newFile = new File(fileTransfer.getFile().getName(), newContent,
                         fileTransfer.getFile().getContent().length());
-                // TODO: needed to remove files from the list, currently not being removed
+
+                fileTransfer.setTransferredBytes(++curr);
+                for (File file : files) {
+                    if (file.getName().equals(fileTransfer.getFile().getName())) {
+                        fileToRemove = file;
+                    }
+                }
+                files.remove(fileToRemove);
                 files.add(newFile);
                 recipient.setFiles(files);
-                System.out.println(recipient.getId() + " newFile: " + newFile.getContent());
             }
         }
         fileTransferState.removeAll(transfersToRemove);

@@ -3,7 +3,6 @@ package unsw.blackout;
 import unsw.utils.Angle;
 
 public class TeleportingSatellite extends Satellite {
-    private Angle initial;
     private boolean clockwise;
     private int sendingBandwidth;
     private int recievingBandwidth;
@@ -12,7 +11,6 @@ public class TeleportingSatellite extends Satellite {
     public TeleportingSatellite(String satelliteId, String type, double height, Angle position, int linearSpeed,
             int range) {
         super(satelliteId, type, height, position, linearSpeed, range);
-        this.initial = position;
         this.sendingBandwidth = 10;
         this.recievingBandwidth = 15;
         this.storage = 200;
