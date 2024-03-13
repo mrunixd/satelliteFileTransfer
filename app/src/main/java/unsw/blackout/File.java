@@ -42,4 +42,8 @@ public class File {
     public boolean isFileComplete() {
         return this.isComplete;
     }
+
+    public String teleportGlitch() {
+        return this.content.replaceAll("t", "");
+    }
 }

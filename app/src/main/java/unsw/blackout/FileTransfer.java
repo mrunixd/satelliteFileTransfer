@@ -19,7 +19,7 @@ public class FileTransfer {
         return this.sender;
     }
 
-    public Entity getrecipient() {
+    public Entity getRecipient() {
         return this.recipient;
     }
 

@@ -6,6 +6,7 @@ public class TeleportingSatellite extends Satellite {
     private boolean clockwise;
     private int sendingBandwidth;
     private int recievingBandwidth;
+    private boolean teleported;
 
     public TeleportingSatellite(String satelliteId, String type, double height, Angle position, int linearSpeed,
             int range) {
@@ -20,6 +21,10 @@ public class TeleportingSatellite extends Satellite {
 
     public int getRecievingBandwidth() {
         return this.recievingBandwidth;
+    }
+
+    public boolean didTeleport() {
+        return this.teleported;
     }
 
     @Override
@@ -40,6 +45,9 @@ public class TeleportingSatellite extends Satellite {
             // Teleport back to the initial position
             newAngle = Angle.fromDegrees(0);
             this.clockwise = !this.clockwise;
+            this.teleported = true;
+        } else {
+            this.teleported = false;
         }
 
         super.setPosition(newAngle);

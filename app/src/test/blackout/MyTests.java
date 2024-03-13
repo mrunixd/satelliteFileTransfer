@@ -1,6 +1,8 @@
 package blackout;
 
 import static blackout.TestHelpers.assertListAreEqualIgnoringOrder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
@@ -11,10 +13,10 @@ import org.junit.jupiter.api.Test;
 
 import unsw.blackout.BlackoutController;
 import unsw.blackout.FileTransferException;
+import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
 public class MyTests {
-    // TODO: Add your own tests here
     @Test
     public void removeDevice() {
         BlackoutController controller = new BlackoutController();
@@ -100,5 +102,47 @@ public class MyTests {
             controller.sendFile("AnotherFile", "DeviceA", "SatelliteA");
         });
 
+    }
+
+    @Test
+    public void teleportingGlitch() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "TeleportingSatellite", 89964, Angle.fromDegrees(179.99));
+
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(180));
+        controller.createDevice("DeviceB", "HandheldDevice", Angle.fromDegrees(0));
+
+        controller.addFileToDevice("DeviceA", "Test", "test");
+
+        assertDoesNotThrow(() -> {
+            controller.sendFile("Test", "DeviceA", "SatelliteA");
+            controller.simulate();
+            controller.sendFile("Test", "SatelliteA", "DeviceB");
+            controller.simulate();
+        });
+
+        assertEquals(new FileInfoResponse("Test", "es", 2, true), controller.getInfo("DeviceB").getFiles().get("Test"));
+    }
+
+    @Test
+    public void relayFileTransfer() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "StandardSatellite", 85739, Angle.fromDegrees(61.0312));
+        controller.createSatellite("Relay", "RelaySatellite", 85420, Angle.fromDegrees(25.4644));
+
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(0));
+
+        controller.addFileToDevice("DeviceA", "Test", "test");
+
+        assertDoesNotThrow(() -> {
+            controller.sendFile("Test", "DeviceA", "SatelliteA");
+        });
+
+        controller.simulate(4);
+
+        assertEquals(new FileInfoResponse("Test", "test", 4, true),
+                controller.getInfo("SatelliteA").getFiles().get("Test"));
     }
 }
