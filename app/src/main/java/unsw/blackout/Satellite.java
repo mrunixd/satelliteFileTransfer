@@ -7,14 +7,12 @@ import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
 public abstract class Satellite extends Entity {
-    private double height;
     private int linearSpeed;
     private int maxFiles;
     private int storage;
 
     public Satellite(String satelliteId, String type, double height, Angle position, int linearSpeed, int range) {
-        super(satelliteId, type, position, range);
-        this.height = height;
+        super(satelliteId, type, position, range, height);
         this.linearSpeed = linearSpeed;
 
         if (type.equals("StandardSatellite")) {
@@ -24,10 +22,6 @@ public abstract class Satellite extends Entity {
             this.maxFiles = -1;
             this.storage = 200;
         }
-    }
-
-    public double getHeight() {
-        return this.height;
     }
 
     public int getLinearSpeed() {
@@ -72,7 +66,7 @@ public abstract class Satellite extends Entity {
         return this.storage;
     }
 
-    public void setStorage(int sizeOfFile) {
+    public void decreaseStorage(int sizeOfFile) {
         this.storage -= sizeOfFile;
     }
 
@@ -87,7 +81,7 @@ public abstract class Satellite extends Entity {
 
     @Override
     public EntityInfoResponse getInfo() {
-        EntityInfoResponse info = new EntityInfoResponse(getId(), getPosition(), this.height, getType(),
+        EntityInfoResponse info = new EntityInfoResponse(getId(), getPosition(), getHeight(), getType(),
                 getInfoFiles());
         return info;
     }

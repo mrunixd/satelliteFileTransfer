@@ -17,6 +17,14 @@ public class FileTransferState {
     public void addFileTransfer(Entity sender, Entity recipient, File file) {
         FileTransfer transferFile = new FileTransfer(sender, recipient, file);
         transfers.add(transferFile);
+        sender.addFilesSending(1);
+        recipient.addFilesRecieving(1);
+
+        if (recipient instanceof Satellite) {
+            ((Satellite) recipient).decreaseStorage(file.getSize());
+        }
+
+        recipient.addFile(file.getName(), "", file.getSize());
     }
 
     public void removeFileTransfers(List<FileTransfer> finished) {

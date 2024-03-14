@@ -1,7 +1,11 @@
 package unsw.blackout;
 
+import static unsw.utils.MathsHelper.getDistance;
+import static unsw.utils.MathsHelper.isVisible;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import unsw.response.models.EntityInfoResponse;
 import unsw.utils.Angle;
@@ -10,15 +14,17 @@ public abstract class Entity {
     private String id;
     private String type;
     private Angle position;
+    private double height;
     private int range;
     private List<File> files = new ArrayList<>();
     private int filesSending;
     private int filesRecieving;
 
-    public Entity(String id, String type, Angle position, int range) {
+    public Entity(String id, String type, Angle position, int range, double height) {
         this.id = id;
         this.type = type;
         this.position = position;
+        this.height = height;
         this.range = range;
         this.filesSending = 0;
         this.filesRecieving = 0;
@@ -42,6 +48,10 @@ public abstract class Entity {
 
     public String getType() {
         return this.type;
+    }
+
+    public double getHeight() {
+        return this.height;
     }
 
     public void addFile(String filename, String content, int size) {
@@ -78,6 +88,19 @@ public abstract class Entity {
 
     public void addFilesRecieving(int numFiles) {
         this.filesRecieving += numFiles;
+    }
+
+    public static boolean notSupportedTransfer(Entity a, Entity b) {
+        boolean standardAndDesktop = b instanceof StandardSatellite && a.getType().equals("DesktopDevice");
+        boolean desktopAndStandard = a instanceof StandardSatellite && b.getType().equals("DesktopDevice");
+        return standardAndDesktop || desktopAndStandard;
+    }
+
+    public static boolean entitiesAreCommunicable(Set<Entity> visited, Entity a, Entity b) {
+        double distance = getDistance(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
+        boolean isVisible = isVisible(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
+
+        return !visited.contains(b) && distance < b.getRange() && distance > 0 && isVisible;
     }
 
     public abstract EntityInfoResponse getInfo();

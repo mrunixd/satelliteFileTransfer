@@ -11,8 +11,8 @@ import unsw.utils.Angle;
 public class Device extends Entity {
     private int maxBandwidth = 15;
 
-    public Device(String deviceId, String type, Angle position, int range) {
-        super(deviceId, type, position, range);
+    public Device(String deviceId, String type, Angle position, int range, double height) {
+        super(deviceId, type, position, range, height);
     }
 
     public Map<String, FileInfoResponse> getInfoFiles() {

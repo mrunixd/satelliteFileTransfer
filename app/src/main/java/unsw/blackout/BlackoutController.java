@@ -1,7 +1,6 @@
 package unsw.blackout;
 
-import static unsw.utils.MathsHelper.getDistance;
-import static unsw.utils.MathsHelper.isVisible;
+import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -9,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import unsw.blackout.FileTransferException.VirtualFileAlreadyExistsException;
 import unsw.blackout.FileTransferException.VirtualFileNoBandwidthException;
@@ -33,13 +34,13 @@ public class BlackoutController {
 
         switch (type) {
         case "HandheldDevice":
-            device = new Device(deviceId, type, position, 50000);
+            device = new Device(deviceId, type, position, 50000, RADIUS_OF_JUPITER);
             break;
         case "LaptopDevice":
-            device = new Device(deviceId, type, position, 100000);
+            device = new Device(deviceId, type, position, 100000, RADIUS_OF_JUPITER);
             break;
         default:
-            device = new Device(deviceId, type, position, 200000);
+            device = new Device(deviceId, type, position, 200000, RADIUS_OF_JUPITER);
         }
 
         deviceList.add(device);
@@ -153,40 +154,23 @@ public class BlackoutController {
     }
 
     public List<String> communicableEntitiesInRange(String id) {
-
         Queue<Entity> q = new ArrayDeque<>();
         Set<Entity> visited = new HashSet<>();
         List<String> entitiesinRange = new ArrayList<>();
-
+        List<String> entities = Stream.concat(listSatelliteIds().stream(), listDeviceIds().stream())
+                .filter(entityId -> !entityId.equals(id)).collect(Collectors.toList());
         Entity entity = findEntityById(id);
-        q.add(entity);
 
-        List<String> entities = new ArrayList<>();
-        entities.addAll(listSatelliteIds());
-        entities.addAll(listDeviceIds());
-        entities.remove(id);
+        q.add(entity);
 
         while (!q.isEmpty()) {
             entity = q.remove();
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
-
-                boolean standardAndDesktop = e instanceof StandardSatellite && entity.getType().equals("DesktopDevice");
-                boolean desktopAndStandard = (e.getType().equals("DesktopDevice")
-                        && entity instanceof StandardSatellite);
-                if ((standardAndDesktop) || desktopAndStandard) {
+                if (Entity.notSupportedTransfer(entity, e)) {
                     visited.add(e);
                     continue;
-                }
-                EntityInfoResponse eInfo = e.getInfo();
-                EntityInfoResponse entityInfo = entity.getInfo();
-
-                double distance = getDistance(entityInfo.getHeight(), entity.getPosition(), eInfo.getHeight(),
-                        e.getPosition());
-                boolean isVisible = isVisible(entityInfo.getHeight(), entity.getPosition(), eInfo.getHeight(),
-                        e.getPosition());
-
-                if (!visited.contains(e) && distance < e.getRange() && distance > 0 && isVisible) {
+                } else if (Entity.entitiesAreCommunicable(visited, entity, e)) {
                     if (e instanceof RelaySatellite) {
                         q.add(e);
                     }
@@ -210,13 +194,19 @@ public class BlackoutController {
 
         if (file == null || !file.isFileComplete()) {
             throw new VirtualFileNotFoundException(fileName);
-        } else if (!sender.checkSendingBandwidth()) {
+        }
+
+        if (!sender.checkSendingBandwidth()) {
             throw new VirtualFileNoBandwidthException(sender.getId());
         } else if (!recipient.checkRecievingBandwidth()) {
             throw new VirtualFileNoBandwidthException(recipient.getId());
-        } else if (File.checkFileExists(recipientFiles, fileName) != null) {
+        }
+
+        if (File.checkFileExists(recipientFiles, fileName) != null) {
             throw new VirtualFileAlreadyExistsException(fileName);
-        } else if (recipient instanceof Satellite) {
+        }
+
+        if (recipient instanceof Satellite) {
             Satellite reciepientSatellite = (Satellite) recipient;
 
             if (reciepientSatellite.checkStorage(file.getSize()).equals("Files")) {
@@ -227,15 +217,6 @@ public class BlackoutController {
         }
 
         state.addFileTransfer(sender, recipient, file);
-        sender.addFilesSending(1);
-        recipient.addFilesRecieving(1);
-
-        if (recipient instanceof Satellite) {
-            ((Satellite) recipient).setStorage(file.getSize());
-        }
-
-        recipient.addFile(file.getName(), "", file.getSize());
-
     }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {
