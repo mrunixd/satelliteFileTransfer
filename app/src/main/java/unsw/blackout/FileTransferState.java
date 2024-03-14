@@ -36,29 +36,14 @@ public class FileTransferState {
         Entity recipient = fileTransfer.getRecipient();
 
         if (!entitiesInRange.contains(recipient.getId())) {
-            if (sender instanceof Device && recipient instanceof TeleportingSatellite) {
-                TeleportingSatellite satellite = (TeleportingSatellite) recipient;
-                if (satellite.didTeleport()) {
-                    String newContent = fileTransfer.getFile().teleportGlitch();
+            recipient.removeFile(fileTransfer.getFile().getName());
+            String newContent = fileTransfer.getFile().teleportGlitch();
 
-                    recipient.removeFile(fileTransfer.getFile().getName());
-
-                    sender.removeFile(fileTransfer.getFile().getName());
-                    sender.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
-                } else {
-                    recipient.removeFile(fileTransfer.getFile().getName());
-                }
-            } else if (sender instanceof TeleportingSatellite) {
-                TeleportingSatellite satellite = (TeleportingSatellite) sender;
-                if (satellite.didTeleport()) {
-                    String newContent = fileTransfer.getFile().teleportGlitch();
-
-                    sender.removeFile(fileTransfer.getFile().getName());
-                    sender.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
-                    recipient.removeFile(fileTransfer.getFile().getName());
+            if (FileTransfer.teleportGlitchApplies(sender, recipient)) {
+                sender.removeFile(fileTransfer.getFile().getName());
+                sender.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
+                if (sender instanceof TeleportingSatellite) {
                     recipient.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
-                } else {
-                    recipient.removeFile(fileTransfer.getFile().getName());
                 }
             }
 
@@ -67,15 +52,11 @@ public class FileTransferState {
             return false;
 
         } else {
-            int curr = fileTransfer.getTransferredBytes();
-            int recievingBandwidth = recipient.calcRecievingBandwidth();
-            int sendingBandwidth = sender.calcSendingBandwidth();
+            int transferredBytes = fileTransfer.getTransferredBytes();
+            int bandwidth = Math.min(recipient.calcRecievingBandwidth(), sender.calcSendingBandwidth());
 
-            curr += recievingBandwidth < sendingBandwidth ? recievingBandwidth : sendingBandwidth;
-            fileTransfer.setTransferredBytes(curr);
-            curr = curr < fileTransfer.getFile().getSize() ? curr : fileTransfer.getFile().getSize();
-
-            String newContent = fileTransfer.getFile().getContent().substring(0, curr);
+            fileTransfer.setTransferredBytes(Math.min(transferredBytes + bandwidth, fileTransfer.getFile().getSize()));
+            String newContent = fileTransfer.getFile().getContent().substring(0, fileTransfer.getTransferredBytes());
 
             recipient.removeFile(fileTransfer.getFile().getName());
             recipient.addFile(fileTransfer.getFile().getName(), newContent, fileTransfer.getSize());

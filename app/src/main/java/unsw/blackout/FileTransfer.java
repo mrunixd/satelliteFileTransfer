@@ -38,4 +38,9 @@ public class FileTransfer {
     public int getSize() {
         return this.size;
     }
+
+    public static boolean teleportGlitchApplies(Entity sender, Entity recipient) {
+        return (sender instanceof TeleportingSatellite && ((TeleportingSatellite) sender).didTeleport())
+                || (recipient instanceof TeleportingSatellite && ((TeleportingSatellite) recipient).didTeleport());
+    }
 }
