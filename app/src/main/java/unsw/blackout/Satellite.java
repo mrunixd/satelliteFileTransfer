@@ -28,6 +28,23 @@ public abstract class Satellite extends Entity {
         return this.linearSpeed;
     }
 
+    public int getStorage() {
+        return this.storage;
+    }
+
+    public void decreaseStorage(int sizeOfFile) {
+        this.storage -= sizeOfFile;
+    }
+
+    public String checkStorage(int fileSize) {
+        if (getFiles().size() >= maxFiles && maxFiles != -1) {
+            return "Files";
+        } else if (fileSize > storage) {
+            return "Storage";
+        }
+        return "";
+    }
+
     public Map<String, FileInfoResponse> getInfoFiles() {
         Map<String, FileInfoResponse> fileList = new HashMap<>();
 
@@ -60,23 +77,6 @@ public abstract class Satellite extends Entity {
         newAngle = Angle.fromDegrees(newAngleDeg);
 
         return newAngle;
-    }
-
-    public int getStorage() {
-        return this.storage;
-    }
-
-    public void decreaseStorage(int sizeOfFile) {
-        this.storage -= sizeOfFile;
-    }
-
-    public String checkStorage(int fileSize) {
-        if (getFiles().size() >= maxFiles && maxFiles != -1) {
-            return "Files";
-        } else if (fileSize > storage) {
-            return "Storage";
-        }
-        return "";
     }
 
     @Override
