@@ -8,7 +8,9 @@ import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 
-public abstract class Device extends Entity {
+public class Device extends Entity {
+    private int maxBandwidth = 15;
+
     public Device(String deviceId, String type, Angle position, int range) {
         super(deviceId, type, position, range);
     }
@@ -31,23 +33,23 @@ public abstract class Device extends Entity {
     @Override
     public int calcSendingBandwidth() {
 
-        return 15;
+        return maxBandwidth;
     }
 
     @Override
     public int calcRecievingBandwidth() {
-        return 15;
+        return maxBandwidth;
     }
 
     @Override
     public int calcSendingBandwidth(int files) {
 
-        return 15;
+        return maxBandwidth;
     }
 
     @Override
     public int calcRecievingBandwidth(int files) {
-        return 15;
+        return maxBandwidth;
     }
 
     @Override

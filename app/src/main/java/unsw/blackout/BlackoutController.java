@@ -26,20 +26,20 @@ import unsw.utils.Angle;
 public class BlackoutController {
     private ArrayList<Device> deviceList = new ArrayList<Device>();
     private ArrayList<Satellite> satelliteList = new ArrayList<Satellite>();
-    private ArrayList<FileTransfer> fileTransferState = new ArrayList<FileTransfer>();
+    private FileTransferState state = new FileTransferState();
 
     public void createDevice(String deviceId, String type, Angle position) {
         Device device;
 
         switch (type) {
         case "HandheldDevice":
-            device = new HandheldDevice(deviceId, type, position, 50000);
+            device = new Device(deviceId, type, position, 50000);
             break;
         case "LaptopDevice":
-            device = new LaptopDevice(deviceId, type, position, 100000);
+            device = new Device(deviceId, type, position, 100000);
             break;
         default:
-            device = new DesktopDevice(deviceId, type, position, 200000);
+            device = new Device(deviceId, type, position, 200000);
         }
 
         deviceList.add(device);
@@ -131,7 +131,14 @@ public class BlackoutController {
         for (Satellite satellite : satelliteList) {
             satellite.moveSatellite();
         }
-        incrementState();
+
+        List<FileTransfer> transfersToRemove = new ArrayList<>();
+        for (FileTransfer transfer : state.getTransfers()) {
+            if (!state.incrementState(transfer, communicableEntitiesInRange(transfer.getSender().getId()))) {
+                transfersToRemove.add(transfer);
+            }
+        }
+        state.removeFileTransfers(transfersToRemove);
 
     }
 
@@ -163,8 +170,8 @@ public class BlackoutController {
             entity = q.remove();
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
-                if ((e instanceof StandardSatellite && entity instanceof DesktopDevice)
-                        || (e instanceof DesktopDevice && entity instanceof StandardSatellite)) {
+                if ((e instanceof StandardSatellite && entity.getType().equals("DesktopDevice"))
+                        || (e.getType().equals("DesktopDevice") && entity instanceof StandardSatellite)) {
                     visited.add(e);
                     continue;
                 }
@@ -216,7 +223,7 @@ public class BlackoutController {
             }
         }
 
-        addFileTransfer(sender, recipient, file);
+        state.addFileTransfer(sender, recipient, file);
         sender.addFilesSending(1);
         recipient.addFilesRecieving(1);
 
@@ -226,59 +233,6 @@ public class BlackoutController {
 
         recipient.addFile(file.getName(), "", file.getSize());
 
-    }
-
-    public void addFileTransfer(Entity sender, Entity recipient, File file) {
-        FileTransfer transferFile = new FileTransfer(sender, recipient, file);
-        fileTransferState.add(transferFile);
-    }
-
-    public void incrementState() {
-        List<FileTransfer> transfersToRemove = new ArrayList<>();
-        for (FileTransfer fileTransfer : fileTransferState) {
-            Entity sender = fileTransfer.getSender();
-            Entity recipient = fileTransfer.getRecipient();
-            List<String> entitiesInRange = communicableEntitiesInRange(sender.getId());
-
-            if (!entitiesInRange.contains(recipient.getId())) {
-                if (recipient instanceof TeleportingSatellite) {
-                    TeleportingSatellite satellite = (TeleportingSatellite) recipient;
-                    if (satellite.didTeleport()) {
-                        String newContent = fileTransfer.getFile().teleportGlitch();
-
-                        satellite.removeFile(fileTransfer.getFile().getName());
-                        satellite.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
-                    } else {
-                        recipient.removeFile(fileTransfer.getFile().getName());
-                    }
-                }
-
-                transfersToRemove.add(fileTransfer);
-                sender.addFilesSending(-1);
-                recipient.addFilesRecieving(-1);
-
-            } else {
-                int curr = fileTransfer.getTransferredBytes();
-                int recievingBandwidth = recipient.calcRecievingBandwidth();
-                int sendingBandwidth = sender.calcSendingBandwidth();
-
-                curr += recievingBandwidth < sendingBandwidth ? recievingBandwidth : sendingBandwidth;
-                fileTransfer.setTransferredBytes(curr);
-                curr = curr < fileTransfer.getFile().getSize() ? curr : fileTransfer.getFile().getSize();
-
-                String newContent = fileTransfer.getFile().getContent().substring(0, curr);
-
-                recipient.removeFile(fileTransfer.getFile().getName());
-                recipient.addFile(fileTransfer.getFile().getName(), newContent, fileTransfer.getSize());
-
-                if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize()) {
-                    transfersToRemove.add(fileTransfer);
-                    sender.addFilesSending(-1);
-                    recipient.addFilesRecieving(-1);
-                }
-            }
-        }
-        fileTransferState.removeAll(transfersToRemove);
     }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {
