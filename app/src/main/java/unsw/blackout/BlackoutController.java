@@ -170,8 +170,11 @@ public class BlackoutController {
             entity = q.remove();
             for (String entityId : entities) {
                 Entity e = findEntityById(entityId);
-                if ((e instanceof StandardSatellite && entity.getType().equals("DesktopDevice"))
-                        || (e.getType().equals("DesktopDevice") && entity instanceof StandardSatellite)) {
+
+                boolean standardAndDesktop = e instanceof StandardSatellite && entity.getType().equals("DesktopDevice");
+                boolean desktopAndStandard = (e.getType().equals("DesktopDevice")
+                        && entity instanceof StandardSatellite);
+                if ((standardAndDesktop) || desktopAndStandard) {
                     visited.add(e);
                     continue;
                 }

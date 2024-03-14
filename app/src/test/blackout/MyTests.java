@@ -105,24 +105,45 @@ public class MyTests {
     }
 
     @Test
-    public void teleportingGlitch() {
+    public void teleportingGlitchDevicetoSatellite() {
         BlackoutController controller = new BlackoutController();
 
         controller.createSatellite("SatelliteA", "TeleportingSatellite", 89964, Angle.fromDegrees(179.99));
 
         controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(180));
-        controller.createDevice("DeviceB", "HandheldDevice", Angle.fromDegrees(0));
 
         controller.addFileToDevice("DeviceA", "Test", "test");
 
         assertDoesNotThrow(() -> {
             controller.sendFile("Test", "DeviceA", "SatelliteA");
             controller.simulate();
-            controller.sendFile("Test", "SatelliteA", "DeviceB");
-            controller.simulate();
         });
 
-        assertEquals(new FileInfoResponse("Test", "es", 2, true), controller.getInfo("DeviceB").getFiles().get("Test"));
+        assertEquals(new FileInfoResponse("Test", "es", 2, true), controller.getInfo("DeviceA").getFiles().get("Test"));
+    }
+
+    @Test
+    public void teleportingGlitchSatellitetoSatellite() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "TeleportingSatellite", 89680, Angle.fromDegrees(178.4815));
+        controller.createSatellite("SatelliteB", "StandardSatellite", 89813, Angle.fromDegrees(167.8927));
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(180));
+
+        controller.addFileToDevice("DeviceA", "Test", "test");
+
+        assertDoesNotThrow(() -> {
+            controller.sendFile("Test", "DeviceA", "SatelliteA");
+            controller.simulate(2);
+            controller.sendFile("Test", "SatelliteA", "SatelliteB");
+            controller.simulate();
+        });
+        assertEquals(new FileInfoResponse("Test", "es", 2, true),
+                controller.getInfo("SatelliteB").getFiles().get("Test"));
+
+        assertEquals(new FileInfoResponse("Test", "es", 2, true),
+                controller.getInfo("SatelliteA").getFiles().get("Test"));
+
     }
 
     @Test

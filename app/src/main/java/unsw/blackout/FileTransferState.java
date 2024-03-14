@@ -28,13 +28,27 @@ public class FileTransferState {
         Entity recipient = fileTransfer.getRecipient();
 
         if (!entitiesInRange.contains(recipient.getId())) {
-            if (recipient instanceof TeleportingSatellite) {
+            if (sender instanceof Device && recipient instanceof TeleportingSatellite) {
                 TeleportingSatellite satellite = (TeleportingSatellite) recipient;
                 if (satellite.didTeleport()) {
                     String newContent = fileTransfer.getFile().teleportGlitch();
 
-                    satellite.removeFile(fileTransfer.getFile().getName());
-                    satellite.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
+                    recipient.removeFile(fileTransfer.getFile().getName());
+
+                    sender.removeFile(fileTransfer.getFile().getName());
+                    sender.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
+                } else {
+                    recipient.removeFile(fileTransfer.getFile().getName());
+                }
+            } else if (sender instanceof TeleportingSatellite) {
+                TeleportingSatellite satellite = (TeleportingSatellite) sender;
+                if (satellite.didTeleport()) {
+                    String newContent = fileTransfer.getFile().teleportGlitch();
+
+                    sender.removeFile(fileTransfer.getFile().getName());
+                    sender.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
+                    recipient.removeFile(fileTransfer.getFile().getName());
+                    recipient.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
                 } else {
                     recipient.removeFile(fileTransfer.getFile().getName());
                 }
