@@ -99,3 +99,19 @@
 - SendFile function, excessive use of if statements and instanceof
 - What is the point of EntityInfoResponse, if I can make my entity class
 - Should I have a seperate class for my state?
+
+## Input #7
+
+### Design Process
+
+- I have kept my fileTransfers in another class which manages the state, this prevents
+  too much logic being kept in the blackout controller which can make it confusing
+- I have realised that there is no need for subclasses for devices as of now and have
+  ridden of all the subclasses for devices
+- Device is now a regular class
+
+### Reflection
+
+- I think now I have refactored my code to a good enough point where I can start to
+  work on task 3
+- Currently all previous implementation should be complete
