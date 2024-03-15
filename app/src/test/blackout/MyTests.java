@@ -72,7 +72,7 @@ public class MyTests {
     }
 
     @Test
-    public void desktopAndStandardSatellite() {
+    public void desktopAndStandardSatelliteNotInRange() {
         BlackoutController controller = new BlackoutController();
 
         controller.createSatellite("Satellite1", "StandardSatellite", 20000 + RADIUS_OF_JUPITER, Angle.fromDegrees(23));
