@@ -206,4 +206,32 @@ public class MyTests {
 
     }
 
+    @Test
+    public void deviceRangeTest() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "TeleportingSatellite", RADIUS_OF_JUPITER + 50000,
+                Angle.fromDegrees(0));
+        controller.createSatellite("SatelliteB", "StandardSatellite", RADIUS_OF_JUPITER + 50001, Angle.fromDegrees(0));
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(0));
+
+        controller.createSatellite("SatelliteC", "TeleportingSatellite", RADIUS_OF_JUPITER + 100000,
+                Angle.fromDegrees(180));
+        controller.createSatellite("SatelliteD", "StandardSatellite", RADIUS_OF_JUPITER + 1000001,
+                Angle.fromDegrees(180));
+        controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(180));
+
+        controller.createSatellite("SatelliteE", "TeleportingSatellite", RADIUS_OF_JUPITER + 200000,
+                Angle.fromDegrees(135));
+        controller.createSatellite("SatelliteF", "TeleportingSatellite", RADIUS_OF_JUPITER + 200001,
+                Angle.fromDegrees(135));
+        controller.createDevice("DeviceC", "DesktopDevice", Angle.fromDegrees(135));
+
+        System.out.println(controller.communicableEntitiesInRange("DeviceC"));
+
+        assertListAreEqualIgnoringOrder(Arrays.asList("SatelliteA"), controller.communicableEntitiesInRange("DeviceA"));
+        assertListAreEqualIgnoringOrder(Arrays.asList("SatelliteC"), controller.communicableEntitiesInRange("DeviceB"));
+        assertListAreEqualIgnoringOrder(Arrays.asList("SatelliteC", "SatelliteE"),
+                controller.communicableEntitiesInRange("DeviceC"));
+    }
 }

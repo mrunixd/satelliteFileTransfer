@@ -99,7 +99,7 @@ public abstract class Entity {
         double distance = getDistance(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
         boolean isVisible = isVisible(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
 
-        return distance < a.getRange() && distance > 0 && isVisible;
+        return distance <= a.getRange() && distance > 0 && isVisible;
     }
 
     public abstract EntityInfoResponse getInfo();
