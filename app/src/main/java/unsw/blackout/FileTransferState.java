@@ -46,9 +46,6 @@ public class FileTransferState {
                     recipient.addFile(fileTransfer.getFile().getName(), newContent, newContent.length());
                 }
             }
-
-            sender.addFilesSending(-1);
-            recipient.addFilesRecieving(-1);
             return false;
 
         } else {
@@ -62,8 +59,6 @@ public class FileTransferState {
             recipient.addFile(fileTransfer.getFile().getName(), newContent, fileTransfer.getSize());
 
             if (fileTransfer.getTransferredBytes() == fileTransfer.getFile().getSize()) {
-                sender.addFilesSending(-1);
-                recipient.addFilesRecieving(-1);
                 return false;
             }
         }

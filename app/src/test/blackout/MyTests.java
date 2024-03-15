@@ -166,4 +166,44 @@ public class MyTests {
         assertEquals(new FileInfoResponse("Test", "test", 4, true),
                 controller.getInfo("SatelliteA").getFiles().get("Test"));
     }
+
+    @Test
+    public void checkBandwidth() {
+        BlackoutController controller = new BlackoutController();
+
+        controller.createSatellite("SatelliteA", "TeleportingSatellite", 85739, Angle.fromDegrees(0));
+        controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(0));
+
+        controller.addFileToDevice("DeviceA", "a", "abc");
+        controller.addFileToDevice("DeviceA", "b", "abcde");
+        controller.addFileToDevice("DeviceA", "c", "abcdefg");
+
+        assertDoesNotThrow(() -> {
+            controller.sendFile("a", "DeviceA", "SatelliteA");
+            controller.sendFile("b", "DeviceA", "SatelliteA");
+            controller.sendFile("c", "DeviceA", "SatelliteA");
+        });
+
+        controller.simulate();
+
+        assertEquals(new FileInfoResponse("a", "abc", 3, true), controller.getInfo("SatelliteA").getFiles().get("a"));
+        assertEquals(new FileInfoResponse("b", "abcde", 5, true), controller.getInfo("SatelliteA").getFiles().get("b"));
+        assertEquals(new FileInfoResponse("c", "abcde", 7, false),
+                controller.getInfo("SatelliteA").getFiles().get("c"));
+
+        controller.addFileToDevice("DeviceA", "d", "abcdefghijklmnopqrs");
+
+        assertDoesNotThrow(() -> {
+            controller.sendFile("d", "DeviceA", "SatelliteA");
+        });
+
+        controller.simulate();
+
+        assertEquals(new FileInfoResponse("d", "abcdefg", 19, false),
+                controller.getInfo("SatelliteA").getFiles().get("d"));
+        assertEquals(new FileInfoResponse("c", "abcdefg", 7, true),
+                controller.getInfo("SatelliteA").getFiles().get("c"));
+
+    }
+
 }

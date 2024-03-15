@@ -139,6 +139,11 @@ public class BlackoutController {
                 transfersToRemove.add(transfer);
             }
         }
+
+        for (FileTransfer transfer : transfersToRemove) {
+            transfer.getSender().addFilesSending(-1);
+            transfer.getRecipient().addFilesRecieving(-1);
+        }
         state.removeFileTransfers(transfersToRemove);
 
     }
@@ -170,7 +175,7 @@ public class BlackoutController {
                 if (Entity.notSupportedTransfer(entity, e)) {
                     visited.add(e);
                     continue;
-                } else if (Entity.entitiesAreCommunicable(visited, entity, e)) {
+                } else if (!visited.contains(e) && Entity.entitiesAreCommunicable(entity, e)) {
                     if (e instanceof RelaySatellite) {
                         q.add(e);
                     }

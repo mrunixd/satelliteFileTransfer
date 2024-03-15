@@ -5,7 +5,6 @@ import static unsw.utils.MathsHelper.isVisible;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import unsw.response.models.EntityInfoResponse;
 import unsw.utils.Angle;
@@ -96,11 +95,11 @@ public abstract class Entity {
         return standardAndDesktop || desktopAndStandard;
     }
 
-    public static boolean entitiesAreCommunicable(Set<Entity> visited, Entity a, Entity b) {
+    public static boolean entitiesAreCommunicable(Entity a, Entity b) {
         double distance = getDistance(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
         boolean isVisible = isVisible(a.getHeight(), a.getPosition(), b.getHeight(), b.getPosition());
 
-        return !visited.contains(b) && distance < b.getRange() && distance > 0 && isVisible;
+        return distance < a.getRange() && distance > 0 && isVisible;
     }
 
     public abstract EntityInfoResponse getInfo();
